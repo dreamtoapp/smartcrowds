@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/lib/routing';
 import { ArrowRight } from 'lucide-react';
+import { getProjects } from '@/app/actions/project/actions';
+import Image from 'next/image';
 
 export async function generateMetadata({
   params,
@@ -21,45 +23,22 @@ export async function generateMetadata({
   };
 }
 
-const projects = [
-  {
-    id: 'riyadh-lights-wadi-hanifah',
-    nameEn: 'Riyadh Lights – Wadi Hanifah 2024',
-    nameAr: 'نور الرياض وادي حنيفة 2024',
-  },
-  {
-    id: 'riyadh-lights-historical',
-    nameEn: 'Noor Riyadh Historical Sites 2024',
-    nameAr: 'نور الرياض هيستوريكل 2024',
-  },
-  {
-    id: 'riyadh-lights-jax',
-    nameEn: 'Noor Riyadh – JAX District, Diriyah 2024',
-    nameAr: 'نور الرياض جاكس الدرعية 2024',
-  },
-  {
-    id: 'city-hub-taif',
-    nameEn: 'City Hub Taif 2025',
-    nameAr: 'سيتي هب الطائف 2025',
-  },
-  {
-    id: 'middle-beast',
-    nameEn: 'Middle Beast',
-    nameAr: 'الميدل بيست',
-  },
-  {
-    id: 'diriyah-alula-match',
-    nameEn: 'Diriyah - AlUla Match',
-    nameAr: 'مباراة الدرعية - العلا',
-  },
-];
-
 export default async function ProjectsPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+
+  const result = await getProjects({
+    locale,
+    published: true,
+    page: 1,
+    limit: 50,
+  });
+
+  const projects = result?.projects || [];
+  const isArabic = locale === 'ar';
 
   return (
     <>
@@ -68,39 +47,65 @@ export default async function ProjectsPage({
         <section className="container mx-auto px-4 py-24">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              {locale === 'ar' ? 'المشاريع' : 'Our Projects'}
+              {isArabic ? 'المشاريع' : 'Our Projects'}
             </h1>
             <p className="text-xl text-muted-foreground">
-              {locale === 'ar'
+              {isArabic
                 ? 'مشاريعنا الناجحة في إدارة الحشود وتنظيم الفعاليات'
                 : 'Our successful crowd management and event organization projects'}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <Card key={project.id} className="h-full hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle>
-                    {locale === 'ar' ? project.nameAr : project.nameEn}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    {locale === 'ar'
-                      ? 'مشروع ناجح في إدارة الحشود وتنظيم الفعاليات'
-                      : 'Successful crowd management and event organization project'}
-                  </p>
-                  <Button asChild variant="ghost">
-                    <Link href={`/projects/${project.id}`}>
-                      {locale === 'ar' ? 'اعرف المزيد' : 'Learn More'}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {projects.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">
+                {isArabic ? 'لا توجد مشاريع متاحة حالياً' : 'No projects available at the moment'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project) => (
+                <Card
+                  key={project.id}
+                  className="h-full hover:shadow-lg transition-shadow overflow-hidden"
+                >
+                  {project.featuredImage && (
+                    <div className="relative w-full h-48 bg-muted">
+                      <Image
+                        src={project.featuredImage}
+                        alt={project.nameAr || project.name || 'Project image'}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    </div>
+                  )}
+                  <CardHeader>
+                    <CardTitle>
+                      {isArabic && project.nameAr
+                        ? project.nameAr
+                        : project.name || project.nameAr}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(project.descriptionAr || project.description) && (
+                      <p className="text-muted-foreground mb-4 line-clamp-3">
+                        {isArabic && project.descriptionAr
+                          ? project.descriptionAr
+                          : project.description || project.descriptionAr}
+                      </p>
+                    )}
+                    <Button asChild variant="ghost">
+                      <Link href={`/projects/${project.slug}`} locale={project.locale || locale}>
+                        {isArabic ? 'اعرف المزيد' : 'Learn More'}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </section>
       </main>
       <Footer />

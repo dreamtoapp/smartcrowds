@@ -6,7 +6,9 @@
       "home": "Home",
       "about": "About Us",
       "services": "Services",
+      "events": "Events",
       "projects": "Projects",
+      "blog": "Blog",
       "contact": "Contact",
       "dashboard": "Dashboard"
     },
@@ -25,10 +27,6 @@
     "services": {
       "title": "Our Services",
       "subtitle": "Comprehensive solutions for event organization"
-    },
-    "projects": {
-      "title": "Featured Projects",
-      "subtitle": "Our recent successful events"
     }
   },
   "about": {

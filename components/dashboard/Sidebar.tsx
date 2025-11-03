@@ -5,10 +5,7 @@ import { Link } from '@/lib/routing';
 import { 
   LayoutDashboard, 
   FolderKanban, 
-  Briefcase, 
-  BarChart3,
-  Settings,
-  LogOut 
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,28 +21,16 @@ const menuItems = [
     href: 'dashboard',
   },
   {
+    title: 'Blog',
+    titleAr: 'المدونة',
+    icon: BookOpen,
+    href: 'dashboard/blog',
+  },
+  {
     title: 'Projects',
     titleAr: 'المشاريع',
     icon: FolderKanban,
     href: 'dashboard/projects',
-  },
-  {
-    title: 'Services',
-    titleAr: 'الخدمات',
-    icon: Briefcase,
-    href: 'dashboard/services',
-  },
-  {
-    title: 'Analytics',
-    titleAr: 'التحليلات',
-    icon: BarChart3,
-    href: 'dashboard/analytics',
-  },
-  {
-    title: 'Settings',
-    titleAr: 'الإعدادات',
-    icon: Settings,
-    href: 'dashboard/settings',
   },
 ];
 
@@ -82,13 +67,6 @@ export function Sidebar({ locale }: SidebarProps) {
           );
         })}
       </nav>
-
-      <div className="mt-8 pt-8 border-t">
-        <button className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors w-full text-left">
-          <LogOut className="h-5 w-5" />
-          <span>{locale === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
-        </button>
-      </div>
     </aside>
   );
 }

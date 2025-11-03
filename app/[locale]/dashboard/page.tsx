@@ -1,11 +1,13 @@
-import { useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from '@/lib/routing';
 import { 
   FolderKanban, 
-  Briefcase, 
-  Users, 
-  TrendingUp 
+  FileText, 
+  CheckCircle, 
+  Clock 
 } from 'lucide-react';
+import { getDashboardStats } from '@/app/actions/dashboard/stats';
+import { format } from 'date-fns';
 
 export default async function DashboardPage({
   params,
@@ -13,31 +15,33 @@ export default async function DashboardPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const stats = await getDashboardStats();
+  const isArabic = locale === 'ar';
 
-  const stats = [
+  const statCards = [
     {
-      title: locale === 'ar' ? 'إجمالي المشاريع' : 'Total Projects',
-      value: '12',
+      title: isArabic ? 'إجمالي المشاريع' : 'Total Projects',
+      value: stats.projects.total.toString(),
       icon: FolderKanban,
-      change: '+3',
+      change: stats.projects.change,
     },
     {
-      title: locale === 'ar' ? 'الخدمات النشطة' : 'Active Services',
-      value: '6',
-      icon: Briefcase,
-      change: '+0',
+      title: isArabic ? 'المشاريع المنشورة' : 'Published Projects',
+      value: stats.projects.published.toString(),
+      icon: CheckCircle,
+      change: stats.projects.change,
     },
     {
-      title: locale === 'ar' ? 'العملاء' : 'Clients',
-      value: '25',
-      icon: Users,
-      change: '+5',
+      title: isArabic ? 'إجمالي المقالات' : 'Total Posts',
+      value: stats.posts.total.toString(),
+      icon: FileText,
+      change: stats.posts.change,
     },
     {
-      title: locale === 'ar' ? 'نمو الإيرادات' : 'Revenue Growth',
-      value: '15%',
-      icon: TrendingUp,
-      change: '+5%',
+      title: isArabic ? 'المقالات المنشورة' : 'Published Posts',
+      value: stats.posts.published.toString(),
+      icon: FileText,
+      change: stats.posts.change,
     },
   ];
 
@@ -55,7 +59,7 @@ export default async function DashboardPage({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
+        {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.title}>
@@ -67,10 +71,6 @@ export default async function DashboardPage({
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">{stat.change}</span>{' '}
-                  {locale === 'ar' ? 'من الشهر الماضي' : 'from last month'}
-                </p>
               </CardContent>
             </Card>
           );
@@ -81,30 +81,112 @@ export default async function DashboardPage({
         <Card>
           <CardHeader>
             <CardTitle>
-              {locale === 'ar' ? 'المشاريع الأخيرة' : 'Recent Projects'}
+              {isArabic ? 'المشاريع الأخيرة' : 'Recent Projects'}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              {locale === 'ar'
-                ? 'لا توجد مشاريع حديثة'
-                : 'No recent projects'}
-            </p>
+            {stats.recentProjects.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {isArabic
+                  ? 'لا توجد مشاريع حديثة'
+                  : 'No recent projects'}
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {stats.recentProjects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/dashboard/projects/${project.id}/edit`}
+                        className="block font-medium truncate hover:text-primary"
+                      >
+                        {isArabic && project.nameAr
+                          ? project.nameAr
+                          : project.name || project.nameAr || 'Untitled'}
+                      </Link>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {format(new Date(project.createdAt), 'MMM d, yyyy')}
+                        {!project.published && (
+                          <span className="text-yellow-600">
+                            ({isArabic ? 'مسودة' : 'Draft'})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {stats.recentProjects.length >= 5 && (
+                  <div className="pt-2 border-t">
+                    <Link
+                      href="/dashboard/projects"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {isArabic ? 'عرض الكل' : 'View All'} →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>
-              {locale === 'ar' ? 'النشاط الأخير' : 'Recent Activity'}
+              {isArabic ? 'المقالات الأخيرة' : 'Recent Posts'}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              {locale === 'ar'
-                ? 'لا يوجد نشاط حديث'
-                : 'No recent activity'}
-            </p>
+            {stats.recentPosts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {isArabic
+                  ? 'لا توجد مقالات حديثة'
+                  : 'No recent posts'}
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {stats.recentPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/dashboard/blog/${post.id}/edit`}
+                        className="block font-medium truncate hover:text-primary"
+                      >
+                        {isArabic && post.titleAr
+                          ? post.titleAr
+                          : post.title || post.titleAr || 'Untitled'}
+                      </Link>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {format(new Date(post.createdAt), 'MMM d, yyyy')}
+                        {!post.published && (
+                          <span className="text-yellow-600">
+                            ({isArabic ? 'مسودة' : 'Draft'})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {stats.recentPosts.length >= 5 && (
+                  <div className="pt-2 border-t">
+                    <Link
+                      href="/dashboard/blog"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {isArabic ? 'عرض الكل' : 'View All'} →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

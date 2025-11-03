@@ -1,50 +1,223 @@
+import { getProjects } from '@/app/actions/project/actions';
+import { Link } from '@/lib/routing';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus } from 'lucide-react';
+import { Plus, Edit, Eye, Calendar, Image as ImageIcon, Images } from 'lucide-react';
+import { format } from 'date-fns';
+import Image from 'next/image';
+
+interface ProjectsManagementPageProps {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ page?: string }>;
+}
 
 export default async function ProjectsManagementPage({
   params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+  searchParams,
+}: ProjectsManagementPageProps) {
   const { locale } = await params;
+  const { page = '1' } = await searchParams;
+  const currentPage = parseInt(page, 10) || 1;
+
+  const result = await getProjects({
+    locale: undefined, // Show all projects
+    published: undefined,
+    page: currentPage,
+    limit: 20,
+  });
+
+  const { projects = [], pagination = { page: 1, limit: 20, total: 0, totalPages: 0 } } = result || {};
+  const isArabic = locale === 'ar';
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold mb-2">
-            {locale === 'ar' ? 'إدارة المشاريع' : 'Projects Management'}
+            {isArabic ? 'إدارة المشاريع' : 'Projects Management'}
           </h1>
           <p className="text-muted-foreground">
-            {locale === 'ar'
+            {isArabic
               ? 'إدارة وتحرير المشاريع'
               : 'Manage and edit projects'}
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          {locale === 'ar' ? 'إضافة مشروع' : 'Add Project'}
+        <Button asChild>
+          <Link href="/dashboard/projects/new">
+            <Plus className="h-4 w-4 mr-2" />
+            {isArabic ? 'إضافة مشروع' : 'Add Project'}
+          </Link>
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Riyadh Lights – Wadi Hanifah 2024</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                {locale === 'ar' ? 'تحرير' : 'Edit'}
-              </Button>
-              <Button variant="destructive" size="sm">
-                {locale === 'ar' ? 'حذف' : 'Delete'}
-              </Button>
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>{isArabic ? 'المشاريع' : 'Projects'}</CardTitle>
+            <span className="text-sm text-muted-foreground">
+              {pagination.total} {isArabic ? 'مشروع' : 'projects'}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {projects.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">
+              {isArabic
+                ? 'لا توجد مشاريع بعد'
+                : 'No projects yet. Create your first project!'}
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {projects.map((project) => (
+                <Card
+                  key={project.id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  {/* Featured Image */}
+                  {project.featuredImage ? (
+                    <div className="relative w-full h-48 bg-muted">
+                      <Image
+                        src={project.featuredImage}
+                        alt={project.nameAr || project.name || 'Project image'}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                      {/* Status Badges */}
+                      <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2">
+                        <div className="flex gap-2">
+                          {!project.published && (
+                            <span className="px-2 py-1 text-xs font-medium bg-yellow-500/90 text-yellow-950 rounded backdrop-blur-sm">
+                              {isArabic ? 'مسودة' : 'Draft'}
+                            </span>
+                          )}
+                          {project.featured && (
+                            <span className="px-2 py-1 text-xs font-medium bg-blue-500/90 text-blue-950 rounded backdrop-blur-sm">
+                              {isArabic ? 'مميز' : 'Featured'}
+                            </span>
+                          )}
+                        </div>
+                        {/* Locale Badge */}
+                        <span
+                          className={`px-2.5 py-1 text-xs font-bold rounded backdrop-blur-sm border ${
+                            project.locale === 'ar'
+                              ? 'bg-blue-600/90 text-white border-blue-700'
+                              : 'bg-purple-600/90 text-white border-purple-700'
+                          }`}
+                        >
+                          {project.locale === 'ar' ? 'العربية' : 'English'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative w-full h-48 bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
+                      <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2">
+                        <div className="flex gap-2">
+                          {!project.published && (
+                            <span className="px-2 py-1 text-xs font-medium bg-yellow-500/90 text-yellow-950 rounded backdrop-blur-sm">
+                              {isArabic ? 'مسودة' : 'Draft'}
+                            </span>
+                          )}
+                          {project.featured && (
+                            <span className="px-2 py-1 text-xs font-medium bg-blue-500/90 text-blue-950 rounded backdrop-blur-sm">
+                              {isArabic ? 'مميز' : 'Featured'}
+                            </span>
+                          )}
+                        </div>
+                        <span
+                          className={`px-2.5 py-1 text-xs font-bold rounded backdrop-blur-sm border ${
+                            project.locale === 'ar'
+                              ? 'bg-blue-600/90 text-white border-blue-700'
+                              : 'bg-purple-600/90 text-white border-purple-700'
+                          }`}
+                        >
+                          {project.locale === 'ar' ? 'العربية' : 'English'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <CardContent className="p-4">
+                    {/* Title */}
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                      {project.locale === 'ar' && project.nameAr
+                        ? project.nameAr
+                        : project.name || project.nameAr || 'Untitled'}
+                    </h3>
+
+                    {/* Description */}
+                    {(project.descriptionAr || project.description) && (
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                        {project.locale === 'ar' && project.descriptionAr
+                          ? project.descriptionAr
+                          : project.description || project.descriptionAr}
+                      </p>
+                    )}
+
+                    {/* Meta Information */}
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
+                      {project.startDate && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{format(new Date(project.startDate), 'MMM d, yyyy')}</span>
+                        </div>
+                      )}
+                      {project.images && project.images.length > 0 && (
+                        <div className="flex items-center gap-1">
+                          <ImageIcon className="h-3 w-3" />
+                          <span>{project.images.length} {isArabic ? 'صورة' : 'images'}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-2 border-t">
+                      <Button variant="outline" size="sm" className="flex-1" asChild>
+                        <Link href={`/dashboard/projects/${project.id}/gallery`}>
+                          <Images className="h-4 w-4 mr-1" />
+                          {isArabic ? 'المعرض' : 'Gallery'}
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/dashboard/projects/${project.id}/edit`}>
+                          <Edit className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      {project.slug && (
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/projects/${project.slug}`} locale={project.locale || 'en'}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+
+          {pagination.totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-6">
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
+                (pageNum) => (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? 'default' : 'outline'}
+                    size="sm"
+                    asChild
+                  >
+                    <Link href={`/dashboard/projects?page=${pageNum}`}>
+                      {pageNum}
+                    </Link>
+                  </Button>
+                )
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

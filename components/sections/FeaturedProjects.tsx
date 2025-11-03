@@ -1,34 +1,30 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/lib/routing';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
-const projects = [
-  {
-    id: 'riyadh-lights-wadi-hanifah',
-    name: 'Riyadh Lights – Wadi Hanifah 2024',
-    nameAr: 'نور الرياض وادي حنيفة 2024',
-  },
-  {
-    id: 'riyadh-lights-historical',
-    name: 'Noor Riyadh Historical Sites 2024',
-    nameAr: 'نور الرياض هيستوريكل 2024',
-  },
-  {
-    id: 'riyadh-lights-jax',
-    name: 'Noor Riyadh – JAX District, Diriyah 2024',
-    nameAr: 'نور الرياض جاكس الدرعية 2024',
-  },
-];
+interface FeaturedProjectsProps {
+  projects: Array<{
+    id: string;
+    name: string;
+    nameAr?: string | null;
+    slug: string;
+    description?: string | null;
+    descriptionAr?: string | null;
+    featuredImage?: string | null;
+    locale: string;
+  }>;
+  locale: string;
+}
 
-export function FeaturedProjects() {
-  const t = useTranslations('home.projects');
+export function FeaturedProjects({ projects, locale }: FeaturedProjectsProps) {
   const tCommon = useTranslations('common.cta');
-  const locale = useLocale();
+  const isArabic = locale === 'ar';
 
   return (
     <section className="py-24 bg-muted/50">
@@ -40,49 +36,83 @@ export function FeaturedProjects() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">{t('title')}</h2>
-          <p className="text-xl text-muted-foreground">{t('subtitle')}</p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            {isArabic ? 'المشاريع المميزة' : 'Featured Projects'}
+          </h2>
+          <p className="text-xl text-muted-foreground">
+            {isArabic ? 'فعالياتنا الناجحة الأخيرة' : 'Our recent successful events'}
+          </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-            >
-              <Card className="h-full hover:shadow-lg transition-all hover-lift border-2 hover:border-accent/30 group relative overflow-hidden">
-                {/* Yellow accent bar on hover */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                
-                <CardHeader>
-                  <CardTitle className="group-hover:text-accent transition-colors">
-                    {locale === 'ar' ? project.nameAr : project.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="leading-relaxed mb-4">
-                    {locale === 'ar'
-                      ? 'مشروع ناجح في إدارة الحشود وتنظيم الفعاليات'
-                      : 'Successful crowd management and event organization project'}
-                  </CardDescription>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    className="mt-4 hover:text-accent hover:bg-accent/10 transition-colors"
-                  >
-                    <Link href={`/projects/${project.id}`}>
-                      {tCommon('learnMore')}
-                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+        {projects.length === 0 ? (
+          <p className="text-center text-muted-foreground py-12">
+            {isArabic
+              ? 'لا توجد مشاريع مميزة حالياً'
+              : 'No featured projects available'}
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project, index) => {
+              const name = isArabic && project.nameAr
+                ? project.nameAr
+                : project.name || project.nameAr || 'Untitled';
+              const description = isArabic && project.descriptionAr
+                ? project.descriptionAr
+                : project.description || project.descriptionAr || '';
+              
+              return (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                >
+                  <Card className="h-full hover:shadow-lg transition-all hover-lift border-2 hover:border-accent/30 group relative overflow-hidden">
+                    {/* Yellow accent bar on hover */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    
+                    {/* Featured Image */}
+                    {project.featuredImage && (
+                      <div className="relative w-full h-48 bg-muted">
+                        <Image
+                          src={project.featuredImage}
+                          alt={name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      </div>
+                    )}
+                    
+                    <CardHeader>
+                      <CardTitle className="group-hover:text-accent transition-colors">
+                        {name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {description && (
+                        <CardDescription className="leading-relaxed mb-4 line-clamp-3">
+                          {description}
+                        </CardDescription>
+                      )}
+                      <Button
+                        asChild
+                        variant="ghost"
+                        className="mt-4 hover:text-accent hover:bg-accent/10 transition-colors"
+                      >
+                        <Link href={`/projects/${project.slug}`} locale={project.locale || locale}>
+                          {tCommon('learnMore')}
+                          <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <Button asChild variant="outline" size="lg">
