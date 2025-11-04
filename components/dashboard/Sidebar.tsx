@@ -5,7 +5,9 @@ import { Link } from '@/lib/routing';
 import { 
   LayoutDashboard, 
   FolderKanban, 
-  BookOpen
+  BookOpen,
+  CalendarDays,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +33,30 @@ const menuItems = [
     titleAr: 'المشاريع',
     icon: FolderKanban,
     href: 'dashboard/projects',
+  },
+  {
+    title: 'Events',
+    titleAr: 'الفعاليات',
+    icon: CalendarDays,
+    href: 'dashboard/events',
+  },
+  {
+    title: 'Jobs',
+    titleAr: 'الوظائف',
+    icon: FolderKanban,
+    href: 'dashboard/jobs',
+  },
+  {
+    title: 'Locations',
+    titleAr: 'المواقع',
+    icon: FolderKanban,
+    href: 'dashboard/locations',
+  },
+  {
+    title: 'Nationalities',
+    titleAr: 'الجنسيات',
+    icon: Globe,
+    href: 'dashboard/nationalities',
   },
 ];
 

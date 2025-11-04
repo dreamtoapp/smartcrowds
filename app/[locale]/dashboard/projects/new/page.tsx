@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AddImage from '@/components/AddImage';
 import { SEOFields } from '@/components/dashboard/blog/SEOFields';
 import { X } from 'lucide-react';
+import Image from 'next/image';
 
 export default function NewProjectPage() {
   const locale = useLocale();
@@ -316,10 +317,12 @@ export default function NewProjectPage() {
                   {galleryImages.map((imageUrl, index) => (
                     <div key={index} className="relative group">
                       <div className="relative w-full aspect-square bg-muted rounded-md overflow-hidden">
-                        <img
+                        <Image
                           src={imageUrl}
                           alt={`Gallery image ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                          className="object-cover"
                         />
                         <button
                           type="button"

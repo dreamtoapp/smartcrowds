@@ -86,6 +86,47 @@
       "address": "Address",
       "social": "Follow Us"
     }
+  },
+  "validation": {
+    "eventIdRequired": "Event ID is required",
+    "nameTooShort": "Name is too short",
+    "mobileTooShort": "Mobile number is too short",
+    "invalidEmail": "Invalid email",
+    "idNumberRequired": "ID number is required",
+    "idNumberInvalid": "Invalid ID number",
+    "idNumberNotString": "ID number must be a string",
+    "idNumberDigitsOnly": "ID number must contain only digits",
+    "idNumberLength": "ID number must be exactly 10 digits",
+    "idNumberInvalidFormat": "Invalid ID number format. Must start with 1 (National ID) or 2, 7, 8 (Iqama)",
+    "idNumberCheckDigit": "Invalid ID number. Check digit mismatch",
+    "nationalityRequired": "Nationality is required",
+    "agePositive": "Age must be a positive number",
+    "ageMin": "Age must be at least 1",
+    "ageMax": "Age must be at most 150",
+    "agreeRequired": "You must agree to the requirements",
+    "jobRequired": "Job selection is required",
+    "idImageRequired": "ID image is required",
+    "personalImageRequired": "Personal image is required",
+    "nameTooLong": "Name is too long",
+    "mobileTooLong": "Mobile number is too long",
+    "emailTooLong": "Email is too long"
+  },
+  "placeholders": {
+    "name": "Add your name",
+    "mobile": "05XXXXXXX",
+    "email": "your.email@example.com",
+    "idNumber": "10 digits",
+    "age": "Enter age",
+    "selectNationality": "Select nationality",
+    "selectJob": "Select a job"
+  },
+  "pledge": {
+    "title": "Pledge of Information Accuracy",
+    "description": "I hereby declare that all information and data I have entered in this form is accurate and complete. I commit to inform the responsible authority immediately of any changes to this information. I also agree that providing inaccurate or misleading information may result in legal action against me. I bear full responsibility for any inaccurate or misleading information.",
+    "verified": "ID verified, please accept the pledge",
+    "accept": "I accept the pledge",
+    "cancel": "Cancel",
+    "save": "Save"
   }
 }
 

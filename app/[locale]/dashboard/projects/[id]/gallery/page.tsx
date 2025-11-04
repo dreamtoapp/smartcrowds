@@ -25,6 +25,7 @@ import {
 import AddImage from '@/components/AddImage';
 import { X, ArrowLeft } from 'lucide-react';
 import { Link } from '@/lib/routing';
+import Image from 'next/image';
 
 interface ProjectGalleryPageProps {
   params: Promise<{ id: string }>;
@@ -141,10 +142,12 @@ export default function ProjectGalleryPage({ params }: ProjectGalleryPageProps) 
               {galleryImages.map((image, index) => (
                 <div key={image.id} className="relative group">
                   <div className="relative w-full aspect-square bg-muted rounded-md overflow-hidden">
-                    <img
+                    <Image
                       src={image.imageUrl}
                       alt={image.alt || image.altAr || `Gallery image ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                      className="object-cover"
                     />
                     <AlertDialog>
                       <AlertDialogTrigger asChild>

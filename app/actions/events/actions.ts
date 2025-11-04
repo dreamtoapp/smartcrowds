@@ -1,0 +1,515 @@
+'use server';
+
+import { prisma } from '@/lib/prisma';
+import { eventBasicSchema, eventInputSchema, registrationInputSchema, eventRequirementsJobsSchema, eventJobRequirementSchema } from '@/lib/validations/event';
+import { revalidatePath } from 'next/cache';
+import { validateSaudiID } from '@/lib/validations/saudi-id';
+
+export async function createEvent(input: unknown) {
+  const data = eventBasicSchema.parse(input);
+  const created = await prisma.event.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      date: new Date(data.date),
+      imageUrl: data.imageUrl || undefined,
+      requirements: [],
+      locationId: data.locationId,
+    },
+  });
+  revalidatePath('/ar/dashboard/events');
+  revalidatePath('/en/dashboard/events');
+  return created;
+}
+
+export async function listEvents() {
+  return prisma.event.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      location: true,
+      jobs: {
+        include: { job: true },
+      },
+      subscribers: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+}
+
+export async function getEventById(id: string) {
+  return prisma.event.findUnique({
+    where: { id },
+    include: { location: true, jobs: { include: { job: true } } },
+  });
+}
+
+export async function getEventWithJobs(id: string) {
+  const event = await prisma.event.findUnique({
+    where: { id },
+    include: { 
+      location: true, 
+      jobs: { 
+        include: { job: true },
+        orderBy: { id: 'asc' }
+      } 
+    },
+  });
+  return event;
+}
+
+export async function updateEventRequirements(eventId: string, requirements: string[]) {
+  try {
+    await prisma.event.update({
+      where: { id: eventId },
+      data: { requirements },
+    });
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    revalidatePath(`/ar/dashboard/events/${eventId}/jobs`);
+    revalidatePath(`/en/dashboard/events/${eventId}/jobs`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating event requirements:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to update event requirements' };
+  }
+}
+
+export async function addEventJob(eventId: string, jobId: string, ratePerDay: number) {
+  try {
+    const validated = eventJobRequirementSchema.parse({ jobId, ratePerDay });
+
+    await prisma.eventJobRequirement.create({
+      data: {
+        eventId,
+        jobId: validated.jobId,
+        ratePerDay: validated.ratePerDay,
+      },
+    });
+    
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    revalidatePath(`/ar/dashboard/events/${eventId}/jobs`);
+    revalidatePath(`/en/dashboard/events/${eventId}/jobs`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error adding event job:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to add event job' };
+  }
+}
+
+export async function updateEventJob(requirementId: string, ratePerDay: number) {
+  try {
+    if (!ratePerDay || ratePerDay <= 0) {
+      return { error: 'Rate per day must be a positive number' };
+    }
+
+    await prisma.eventJobRequirement.update({
+      where: { id: requirementId },
+      data: { ratePerDay },
+    });
+    
+    const requirement = await prisma.eventJobRequirement.findUnique({
+      where: { id: requirementId },
+      include: { event: true },
+    });
+
+    if (requirement) {
+      revalidatePath('/ar/dashboard/events');
+      revalidatePath('/en/dashboard/events');
+      revalidatePath(`/ar/dashboard/events/${requirement.eventId}/jobs`);
+      revalidatePath(`/en/dashboard/events/${requirement.eventId}/jobs`);
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating event job:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to update event job' };
+  }
+}
+
+export async function removeEventJob(requirementId: string) {
+  try {
+    const requirement = await prisma.eventJobRequirement.findUnique({
+      where: { id: requirementId },
+      include: { event: true },
+    });
+
+    if (!requirement) {
+      return { error: 'Event job requirement not found' };
+    }
+
+    await prisma.eventJobRequirement.delete({
+      where: { id: requirementId },
+    });
+    
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    revalidatePath(`/ar/dashboard/events/${requirement.eventId}/jobs`);
+    revalidatePath(`/en/dashboard/events/${requirement.eventId}/jobs`);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing event job:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to remove event job' };
+  }
+}
+
+export async function updateEventRequirementsAndJobs(eventId: string, data: unknown) {
+  try {
+    const validated = eventRequirementsJobsSchema.parse(data);
+    
+    // Update requirements
+    await prisma.event.update({
+      where: { id: eventId },
+      data: { requirements: validated.requirements },
+    });
+
+    // Get existing jobs
+    const existingJobs = await prisma.eventJobRequirement.findMany({
+      where: { eventId },
+    });
+
+    // Remove jobs that are no longer in the list
+    const existingJobIds = new Set(existingJobs.map(j => j.jobId));
+    const newJobIds = new Set(validated.jobs.map(j => j.jobId));
+    
+    const jobsToRemove = existingJobs.filter(j => !newJobIds.has(j.jobId));
+    await Promise.all(
+      jobsToRemove.map(job => 
+        prisma.eventJobRequirement.delete({ where: { id: job.id } })
+      )
+    );
+
+    // Update or create jobs
+    await Promise.all(
+      validated.jobs.map(async (job) => {
+        const existing = existingJobs.find(j => j.jobId === job.jobId);
+        if (existing) {
+          // Update existing
+          await prisma.eventJobRequirement.update({
+            where: { id: existing.id },
+            data: { ratePerDay: job.ratePerDay },
+          });
+        } else {
+          // Create new
+          await prisma.eventJobRequirement.create({
+            data: {
+              eventId,
+              jobId: job.jobId,
+              ratePerDay: job.ratePerDay,
+            },
+          });
+        }
+      })
+    );
+    
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    revalidatePath(`/ar/dashboard/events/${eventId}/jobs`);
+    revalidatePath(`/en/dashboard/events/${eventId}/jobs`);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating event requirements and jobs:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to update event requirements and jobs' };
+  }
+}
+
+export async function verifyIdNumber(eventId: string, idNumber: string) {
+  try {
+    // Validate ID format using Saudi ID validation
+    const validation = validateSaudiID(idNumber);
+    
+    if (!validation.valid) {
+      return {
+        valid: false,
+        isDuplicate: false,
+        error: validation.error || 'رقم الهوية غير صحيح',
+      };
+    }
+    
+    // Check for duplicate ID in database
+    const existingSubscriber = await prisma.eventSubscriber.findFirst({
+      where: {
+        eventId,
+        idNumber,
+      },
+    });
+    
+    if (existingSubscriber) {
+      return {
+        valid: true,
+        isDuplicate: true,
+        error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية',
+      };
+    }
+    
+    return {
+      valid: true,
+      isDuplicate: false,
+    };
+  } catch (error) {
+    console.error('Error verifying ID number:', error);
+    return {
+      valid: false,
+      isDuplicate: false,
+      error: error instanceof Error ? error.message : 'فشل التحقق من رقم الهوية',
+    };
+  }
+}
+
+export async function registerForEvent(input: unknown) {
+  try {
+    const data = registrationInputSchema.parse(input);
+    
+    // Check if this ID number is already registered for this event
+    const existingSubscriber = await prisma.eventSubscriber.findFirst({
+      where: {
+        eventId: data.eventId,
+        idNumber: data.idNumber,
+      },
+    });
+    
+    if (existingSubscriber) {
+      return { 
+        error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية' 
+      };
+    }
+    
+    const subscriber = await prisma.eventSubscriber.create({
+      data: {
+        eventId: data.eventId,
+        jobRequirementId: data.jobRequirementId || undefined,
+        nationalityId: data.nationalityId,
+        name: data.name,
+        mobile: data.mobile,
+        email: data.email,
+        idNumber: data.idNumber,
+        age: data.age,
+        idImageUrl: data.idImageUrl || undefined,
+        personalImageUrl: data.personalImageUrl || undefined,
+      },
+    });
+    
+    revalidatePath('/ar/events');
+    revalidatePath('/en/events');
+    revalidatePath(`/ar/events/${data.eventId}`);
+    revalidatePath(`/en/events/${data.eventId}`);
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    revalidatePath(`/ar/dashboard/events/${data.eventId}/subscribers`);
+    revalidatePath(`/en/dashboard/events/${data.eventId}/subscribers`);
+    revalidatePath('/ar/dashboard/subscribers');
+    revalidatePath('/en/dashboard/subscribers');
+    
+    return { success: true, subscriber };
+  } catch (error) {
+    console.error('Error registering for event:', error);
+    
+    // Handle Prisma unique constraint violation
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+      return { 
+        error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية' 
+      };
+    }
+    
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to register for event' };
+  }
+}
+
+export async function listEventSubscribers(eventId: string) {
+  try {
+    const subscribers = await prisma.eventSubscriber.findMany({
+      where: { eventId },
+      include: {
+        jobRequirement: {
+          include: {
+            job: true,
+          },
+        },
+        nationality: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return subscribers;
+  } catch (error) {
+    console.error('Error listing event subscribers:', error);
+    return [];
+  }
+}
+
+export async function exportEventSubscribersToCSV(eventId: string) {
+  try {
+    const subscribers = await prisma.eventSubscriber.findMany({
+      where: { eventId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        event: {
+          select: {
+            title: true,
+          },
+        },
+        jobRequirement: {
+          include: {
+            job: true,
+          },
+        },
+        nationality: true,
+      },
+    });
+
+    if (subscribers.length === 0) {
+      return { error: 'No subscribers to export' };
+    }
+
+    // CSV Headers
+    const headers = [
+      'Name',
+      'Mobile',
+      'Email',
+      'ID Number',
+      'Nationality',
+      'Age',
+      'Job',
+      'Rate Per Day',
+      'ID Image URL',
+      'Personal Image URL',
+      'Registration Date',
+    ];
+
+    // CSV Rows
+    const rows = subscribers.map((subscriber) => [
+      subscriber.name,
+      subscriber.mobile,
+      subscriber.email,
+      subscriber.idNumber,
+      subscriber.nationality ? subscriber.nationality.nameEn : '',
+      subscriber.age.toString(),
+      subscriber.jobRequirement?.job?.name || '',
+      subscriber.jobRequirement?.ratePerDay?.toString() || '',
+      subscriber.idImageUrl || '',
+      subscriber.personalImageUrl || '',
+      new Date(subscriber.createdAt).toISOString(),
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+    ].join('\n');
+
+    // Add BOM for UTF-8 to support Arabic characters in Excel
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csvContent;
+
+    return { success: true, csv: csvWithBOM };
+  } catch (error) {
+    console.error('Error exporting subscribers to CSV:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to export subscribers to CSV' };
+  }
+}
+
+export async function listAllSubscribers() {
+  try {
+    const subscribers = await prisma.eventSubscriber.findMany({
+      include: {
+        event: {
+          select: {
+            title: true,
+          },
+        },
+        jobRequirement: {
+          include: {
+            job: true,
+          },
+        },
+        nationality: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return subscribers;
+  } catch (error) {
+    console.error('Error listing all subscribers:', error);
+    return [];
+  }
+}
+
+export async function updateEventPublished(eventId: string, published: boolean) {
+  try {
+    await prisma.event.update({
+      where: { id: eventId },
+      data: { published },
+    });
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating event published status:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to update event published status' };
+  }
+}
+
+export async function updateEventAcceptJobs(eventId: string, acceptJobs: boolean) {
+  try {
+    await prisma.event.update({
+      where: { id: eventId },
+      data: { acceptJobs },
+    });
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating event accept jobs status:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to update event accept jobs status' };
+  }
+}
+
+export async function updateEventCompleted(eventId: string, completed: boolean) {
+  try {
+    await prisma.event.update({
+      where: { id: eventId },
+      data: { completed },
+    });
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating event completed status:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to update event completed status' };
+  }
+}
+
+

@@ -139,3 +139,98 @@ model ProjectImage {
   @@index([projectId, order])
 }
 
+// ------------------ NEW MODELS ------------------
+model Job {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  requirements EventJobRequirement[]
+
+  @@map("jobs")
+}
+
+model Location {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  city      String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events    Event[]
+
+  @@map("locations")
+}
+
+model Nationality {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  nameAr      String
+  nameEn      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  subscribers EventSubscriber[]
+
+  @@map("nationalities")
+}
+
+model Event {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  date        DateTime
+  imageUrl    String?
+  requirements String[]
+  locationId  String   @db.ObjectId
+  location    Location @relation(fields: [locationId], references: [id])
+  published   Boolean  @default(false)
+  acceptJobs  Boolean  @default(true)
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  jobs        EventJobRequirement[]
+  subscribers EventSubscriber[]
+
+  @@map("events")
+  @@index([locationId])
+  @@index([published])
+  @@index([completed])
+}
+
+model EventJobRequirement {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId    String   @db.ObjectId
+  jobId      String   @db.ObjectId
+  ratePerDay Float?
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  subscribers EventSubscriber[]
+
+  @@map("event_job_requirements")
+}
+
+model EventSubscriber {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId         String   @db.ObjectId
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  jobRequirementId String? @db.ObjectId
+  jobRequirement  EventJobRequirement? @relation(fields: [jobRequirementId], references: [id], onDelete: SetNull)
+  nationalityId   String   @db.ObjectId
+  nationality     Nationality @relation(fields: [nationalityId], references: [id], onDelete: Restrict)
+  name            String
+  mobile          String
+  email           String
+  idNumber        String
+  age             Int
+  idImageUrl      String?
+  personalImageUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("event_subscribers")
+  @@index([eventId])
+  @@index([email])
+  @@index([idNumber])
+  @@index([jobRequirementId])
+  @@index([nationalityId])
+  @@unique([eventId, idNumber])
+}
+
