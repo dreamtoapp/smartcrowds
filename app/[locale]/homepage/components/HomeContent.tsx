@@ -1,6 +1,7 @@
 import { Hero } from './Hero';
 import { ServicesPreview } from './ServicesPreview';
 import { FeaturedProjects } from './FeaturedProjects';
+import ClientsGrid from './ClientsGrid';
 
 interface HomeContentProps {
   featuredProjects: Array<{
@@ -22,6 +23,8 @@ export function HomeContent({ featuredProjects, locale }: HomeContentProps) {
       <Hero />
       <ServicesPreview />
       <FeaturedProjects projects={featuredProjects} locale={locale} />
+      {/* Clients logos */}
+      <ClientsGrid locale={locale} />
     </>
   );
 }

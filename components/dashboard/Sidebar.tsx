@@ -7,7 +7,8 @@ import {
   FolderKanban, 
   BookOpen,
   CalendarDays,
-  Globe
+  Globe,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +40,12 @@ const menuItems = [
     titleAr: 'الفعاليات',
     icon: CalendarDays,
     href: 'dashboard/events',
+  },
+  {
+    title: 'Clients',
+    titleAr: 'العملاء',
+    icon: Users,
+    href: 'dashboard/clients',
   },
   {
     title: 'Jobs',

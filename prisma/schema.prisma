@@ -185,3 +185,18 @@ model EventSubscriber {
   @@unique([eventId, idNumber])
 }
 
+// ------------------ CLIENTS ------------------
+model Client {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  logoUrl    String
+  websiteUrl String?
+  published  Boolean  @default(false)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("clients")
+  @@index([published, order])
+}
+
