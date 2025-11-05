@@ -6,6 +6,21 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { getPosts } from '../actions/actions';
 
+type DashboardPost = {
+  id: string;
+  title?: string | null;
+  titleAr?: string | null;
+  slug?: string | null;
+  excerpt?: string | null;
+  excerptAr?: string | null;
+  featuredImage?: string | null;
+  author?: { name: string } | null;
+  published?: boolean | null;
+  publishedAt?: string | Date | null;
+  locale?: 'en' | 'ar' | string;
+  readingTime?: number | null;
+};
+
 interface BlogListContentProps {
   locale: string;
   currentPage: number;
@@ -19,7 +34,8 @@ export async function BlogListContent({ locale, currentPage }: BlogListContentPr
     limit: 20,
   });
   
-  const { posts = [], pagination = { page: 1, limit: 20, total: 0, totalPages: 0 } } = result || {};
+  const pagination = (result && result.pagination) || { page: 1, limit: 20, total: 0, totalPages: 0 };
+  const posts: DashboardPost[] = (result?.posts as any[]) || [];
 
   const isArabic = locale === 'ar';
 
@@ -62,7 +78,7 @@ export async function BlogListContent({ locale, currentPage }: BlogListContentPr
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {posts.map((post) => (
+                {posts.map((post: DashboardPost) => (
                   <Card
                     key={post.id}
                     className="overflow-hidden hover:shadow-lg transition-shadow"
