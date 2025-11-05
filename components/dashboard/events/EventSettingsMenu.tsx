@@ -18,6 +18,7 @@ import {
 import { useRouter } from '@/lib/routing';
 import { cn } from '@/lib/utils';
 import { showErrorSwal } from '@/lib/utils/swal';
+import { Link } from '@/lib/routing';
 
 interface EventSettingsMenuProps {
   eventId: string;
@@ -103,6 +104,13 @@ export function EventSettingsMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={isArabic ? 'start' : 'end'}>
+        <DropdownMenuItem asChild className="cursor-pointer gap-2">
+          <Link href={`/dashboard/events/${eventId}/edit`}>
+            <Settings className="h-4 w-4" />
+            <span>{isArabic ? 'تعديل' : 'Edit'}</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleToggleAcceptJobs}
           disabled={isPending}

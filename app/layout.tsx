@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html suppressHydrationWarning>
-      <body className={`${inter.className} ${tajawal.variable}`}>
+      <body className={`${inter.className} ${tajawal.variable} overflow-x-hidden`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

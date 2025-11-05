@@ -1,5 +1,4 @@
 import { getPosts } from '@/app/actions/blog/actions';
-import { routing } from '@/lib/routing';
 
 export async function GET() {
   const baseUrl = 'https://hthkia.com';
@@ -19,7 +18,7 @@ export async function GET() {
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml" />
     ${posts
-      .map((post) => {
+      .map((post: RssPost) => {
         const title = post.title;
         const description = post.excerpt || post.seoDescription || '';
         const pubDate = post.publishedAt
@@ -56,6 +55,17 @@ function escapeXml(unsafe: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+type RssPost = {
+  title: string;
+  excerpt?: string | null;
+  seoDescription?: string | null;
+  publishedAt?: string | Date | null;
+  locale: string;
+  slug: string;
+  author?: { name: string } | null;
+};
+
 
 
 

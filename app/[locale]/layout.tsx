@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { routing } from '@/lib/routing';
 import type { Metadata } from 'next';
+import { PublicLayoutWrapper } from '@/components/layout/PublicLayoutWrapper';
 
 export async function generateMetadata({
   params,
@@ -118,7 +119,7 @@ export default async function LocaleLayout({
         }}
       />
       <NextIntlClientProvider messages={messages}>
-        {children}
+        <PublicLayoutWrapper>{children}</PublicLayoutWrapper>
       </NextIntlClientProvider>
     </>
   );

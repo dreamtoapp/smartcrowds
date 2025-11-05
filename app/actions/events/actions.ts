@@ -2,8 +2,9 @@
 
 import { prisma } from '@/lib/prisma';
 import { eventBasicSchema, eventInputSchema, registrationInputSchema, eventRequirementsJobsSchema, eventJobRequirementSchema } from '@/lib/validations/event';
+import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import { validateSaudiID } from '@/lib/validations/saudi-id';
+// Simplified ID validation handled inline
 
 export async function createEvent(input: unknown) {
   const data = eventBasicSchema.parse(input);
@@ -33,6 +34,7 @@ export async function listEvents() {
       subscribers: {
         select: {
           id: true,
+          accepted: true,
         },
       },
     },
@@ -235,14 +237,12 @@ export async function updateEventRequirementsAndJobs(eventId: string, data: unkn
 
 export async function verifyIdNumber(eventId: string, idNumber: string) {
   try {
-    // Validate ID format using Saudi ID validation
-    const validation = validateSaudiID(idNumber);
-    
-    if (!validation.valid) {
+    // Simplified validation: 10 digits starting with 1 or 2
+    if (!/^[12][0-9]{9}$/.test(idNumber)) {
       return {
         valid: false,
         isDuplicate: false,
-        error: validation.error || 'رقم الهوية غير صحيح',
+        error: 'رقم الهوية غير صحيح',
       };
     }
     
@@ -294,6 +294,12 @@ export async function registerForEvent(input: unknown) {
       };
     }
     
+    // Compute age from date of birth
+    const dob = new Date(data.dateOfBirth);
+    const now = new Date();
+    const ageMs = now.getTime() - dob.getTime();
+    const computedAge = Math.floor(ageMs / (365.2425 * 24 * 60 * 60 * 1000));
+
     const subscriber = await prisma.eventSubscriber.create({
       data: {
         eventId: data.eventId,
@@ -303,7 +309,8 @@ export async function registerForEvent(input: unknown) {
         mobile: data.mobile,
         email: data.email,
         idNumber: data.idNumber,
-        age: data.age,
+        age: computedAge,
+        dateOfBirth: dob,
         idImageUrl: data.idImageUrl || undefined,
         personalImageUrl: data.personalImageUrl || undefined,
       },
@@ -338,10 +345,10 @@ export async function registerForEvent(input: unknown) {
   }
 }
 
-export async function listEventSubscribers(eventId: string) {
+export async function listEventSubscribers(eventId: string, acceptedOnly: boolean = false) {
   try {
     const subscribers = await prisma.eventSubscriber.findMany({
-      where: { eventId },
+      where: { eventId, accepted: acceptedOnly ? true : undefined },
       include: {
         jobRequirement: {
           include: {
@@ -356,6 +363,47 @@ export async function listEventSubscribers(eventId: string) {
   } catch (error) {
     console.error('Error listing event subscribers:', error);
     return [];
+  }
+}
+export async function updateSubscriberAccepted(subscriberId: string, accepted: boolean) {
+  try {
+    const updated = await prisma.eventSubscriber.update({
+      where: { id: subscriberId },
+      data: { accepted },
+    });
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    revalidatePath(`/ar/dashboard/events/${updated.eventId}/subscribers`);
+    revalidatePath(`/en/dashboard/events/${updated.eventId}/subscribers`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating subscriber accepted:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to update subscriber accepted' };
+  }
+}
+
+export async function bulkUpdateSubscribersAccepted(ids: string[], accepted: boolean) {
+  try {
+    const subs = await prisma.eventSubscriber.findMany({ where: { id: { in: ids } } });
+    if (subs.length === 0) return { success: true };
+    await prisma.eventSubscriber.updateMany({ where: { id: { in: ids } }, data: { accepted } });
+    const eventIds = Array.from(new Set(subs.map(s => s.eventId)));
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    for (const eid of eventIds) {
+      revalidatePath(`/ar/dashboard/events/${eid}/subscribers`);
+      revalidatePath(`/en/dashboard/events/${eid}/subscribers`);
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Error bulk updating subscriber accepted:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to bulk update subscriber accepted' };
   }
 }
 
@@ -509,6 +557,51 @@ export async function updateEventCompleted(eventId: string, completed: boolean) 
       return { error: error.message };
     }
     return { error: 'Failed to update event completed status' };
+  }
+}
+
+
+// Update event core fields
+const updateEventSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  date: z.string().optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')).optional(),
+  locationId: z.string().optional(),
+  acceptJobs: z.boolean().optional(),
+  published: z.boolean().optional(),
+});
+
+export async function updateEvent(eventId: string, input: unknown) {
+  try {
+    const data = updateEventSchema.parse(input);
+    const updateData: any = {};
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.date !== undefined) updateData.date = new Date(data.date);
+    if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl || null;
+    if (data.locationId !== undefined) updateData.locationId = data.locationId;
+    if (data.acceptJobs !== undefined) updateData.acceptJobs = data.acceptJobs;
+    if (data.published !== undefined) updateData.published = data.published;
+
+    await prisma.event.update({ where: { id: eventId }, data: updateData });
+
+    // Revalidate dashboards and public pages
+    revalidatePath('/ar/dashboard/events');
+    revalidatePath('/en/dashboard/events');
+    revalidatePath(`/ar/dashboard/events/${eventId}/jobs`);
+    revalidatePath(`/en/dashboard/events/${eventId}/jobs`);
+    revalidatePath('/ar/events');
+    revalidatePath('/en/events');
+    revalidatePath(`/ar/events/${eventId}`);
+    revalidatePath(`/en/events/${eventId}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating event:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to update event' };
   }
 }
 

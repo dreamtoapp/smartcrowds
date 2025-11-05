@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { postSchema, categorySchema, tagSchema, type PostInput, type CategoryInput, type TagInput } from '@/lib/validations/blog';
+import { postSchema, type PostInput } from '@/lib/validations/blog';
 import { revalidatePath } from 'next/cache';
 import { calculateReadingTime } from '@/lib/utils/blog';
 
@@ -71,29 +71,9 @@ export async function createPost(data: Omit<PostInput, 'slug'> & { slug?: string
         seoDescription: validated.seoDescription,
         keywords: validated.keywords,
         readingTime,
-        categories: {
-          create: validated.categoryIds.map((categoryId) => ({
-            categoryId,
-          })),
-        },
-        tags: {
-          create: validated.tagIds.map((tagId) => ({
-            tagId,
-          })),
-        },
       },
       include: {
         author: true,
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
       },
     });
 
@@ -186,54 +166,11 @@ export async function updatePost(id: string, data: Partial<PostInput> & { slug?:
       updateData.readingTime = calculateReadingTime(data.content);
     }
 
-    // Update categories and tags first if provided
-    if (data.categoryIds !== undefined) {
-      // Delete existing categories
-      await prisma.postCategory.deleteMany({
-        where: { postId: id },
-      });
-      // Create new category relations only if there are categories to add
-      if (data.categoryIds.length > 0) {
-        await prisma.postCategory.createMany({
-          data: data.categoryIds.map((categoryId) => ({
-            postId: id,
-            categoryId,
-          })),
-        });
-      }
-    }
-
-    if (data.tagIds !== undefined) {
-      // Delete existing tags
-      await prisma.postTag.deleteMany({
-        where: { postId: id },
-      });
-      // Create new tag relations only if there are tags to add
-      if (data.tagIds.length > 0) {
-        await prisma.postTag.createMany({
-          data: data.tagIds.map((tagId) => ({
-            postId: id,
-            tagId,
-          })),
-        });
-      }
-    }
-
     const post = await prisma.post.update({
       where: { id },
       data: updateData,
       include: {
         author: true,
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
       },
     });
 
@@ -268,8 +205,6 @@ export async function deletePost(id: string) {
 export async function getPosts(options?: {
   locale?: string;
   published?: boolean;
-  category?: string;
-  tag?: string;
   page?: number;
   limit?: number;
 }) {
@@ -277,8 +212,6 @@ export async function getPosts(options?: {
     const {
       locale,
       published,
-      category,
-      tag,
       page = 1,
       limit = 10,
     } = options || {};
@@ -294,78 +227,11 @@ export async function getPosts(options?: {
       where.published = published;
     }
 
-    if (category) {
-      const categoryRecord = await prisma.category.findUnique({
-        where: { slug: category },
-      });
-      if (categoryRecord) {
-        const postIds = (
-          await prisma.postCategory.findMany({
-            where: { categoryId: categoryRecord.id },
-            select: { postId: true },
-          })
-        ).map((pc: any) => pc.postId);
-        if (postIds.length > 0) {
-          where.id = { in: postIds };
-        } else {
-          // No posts in this category, return empty result
-          return { posts: [], pagination: { page, limit, total: 0, totalPages: 0 } };
-        }
-      } else {
-        // Category not found, return empty result
-        return { posts: [], pagination: { page, limit, total: 0, totalPages: 0 } };
-      }
-    }
-
-    if (tag) {
-      const tagRecord = await prisma.tag.findUnique({
-        where: { slug: tag },
-      });
-      if (tagRecord) {
-        const postIds = (
-          await prisma.postTag.findMany({
-            where: { tagId: tagRecord.id },
-            select: { postId: true },
-          })
-        ).map((pt: any) => pt.postId);
-
-        if (postIds.length === 0) {
-          // No posts with this tag, return empty result
-          return { posts: [], pagination: { page, limit, total: 0, totalPages: 0 } };
-        }
-
-        // If both category and tag filters, intersect
-        if (category && where.id && where.id.in) {
-          const existingIds = Array.isArray(where.id.in) ? where.id.in : [where.id.in];
-          const intersection = existingIds.filter((postId: any) => postIds.includes(postId));
-          if (intersection.length === 0) {
-            return { posts: [], pagination: { page, limit, total: 0, totalPages: 0 } };
-          }
-          where.id.in = intersection;
-        } else {
-          where.id = { in: postIds };
-        }
-      } else {
-        // Tag not found, return empty result
-        return { posts: [], pagination: { page, limit, total: 0, totalPages: 0 } };
-      }
-    }
-
     const [posts, total] = await Promise.all([
       prisma.post.findMany({
         where,
         include: {
           author: true,
-          categories: {
-            include: {
-              category: true,
-            },
-          },
-          tags: {
-            include: {
-              tag: true,
-            },
-          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -397,16 +263,6 @@ export async function getPostBySlug(slug: string, locale?: string) {
       where: { slug },
       include: {
         author: true,
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
       },
     });
 
@@ -431,16 +287,6 @@ export async function getPostById(id: string) {
       where: { id },
       include: {
         author: true,
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
       },
     });
 
@@ -448,234 +294,6 @@ export async function getPostById(id: string) {
   } catch (error) {
     console.error('Error fetching post:', error);
     return null;
-  }
-}
-
-// Category Actions
-export async function createCategory(data: CategoryInput) {
-  try {
-    const slug = data.slug || generateSlug(data.name);
-
-    const existing = await prisma.category.findUnique({
-      where: { slug },
-    });
-
-    if (existing) {
-      return { error: 'A category with this slug already exists' };
-    }
-
-    const validated = categorySchema.parse({
-      ...data,
-      slug,
-    });
-
-    const category = await prisma.category.create({
-      data: validated,
-    });
-
-    revalidatePath('/blog');
-
-    return { success: true, category };
-  } catch (error) {
-    console.error('Error creating category:', error);
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: 'Failed to create category' };
-  }
-}
-
-export async function updateCategory(id: string, data: Partial<CategoryInput>) {
-  try {
-    const existing = await prisma.category.findUnique({
-      where: { id },
-    });
-
-    if (!existing) {
-      return { error: 'Category not found' };
-    }
-
-    const slug = data.slug || existing.slug;
-
-    if (data.slug && data.slug !== existing.slug) {
-      const slugExists = await prisma.category.findFirst({
-        where: {
-          slug,
-          id: { not: id },
-        },
-      });
-
-      if (slugExists) {
-        return { error: 'A category with this slug already exists' };
-      }
-    }
-
-    const updateData: any = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.nameAr !== undefined) updateData.nameAr = data.nameAr;
-    if (data.slug !== undefined) updateData.slug = slug;
-    if (data.description !== undefined) updateData.description = data.description;
-    if (data.descriptionAr !== undefined) updateData.descriptionAr = data.descriptionAr;
-    if (data.locale !== undefined) updateData.locale = data.locale;
-
-    const category = await prisma.category.update({
-      where: { id },
-      data: updateData,
-    });
-
-    revalidatePath('/blog');
-
-    return { success: true, category };
-  } catch (error) {
-    console.error('Error updating category:', error);
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: 'Failed to update category' };
-  }
-}
-
-export async function deleteCategory(id: string) {
-  try {
-    await prisma.category.delete({
-      where: { id },
-    });
-
-    revalidatePath('/blog');
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting category:', error);
-    return { error: 'Failed to delete category' };
-  }
-}
-
-export async function getCategories(locale?: string) {
-  try {
-    const where = locale ? { locale } : {};
-
-    const categories = await prisma.category.findMany({
-      where,
-      orderBy: {
-        name: 'asc',
-      },
-    });
-
-    return categories;
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return [];
-  }
-}
-
-// Tag Actions
-export async function createTag(data: TagInput) {
-  try {
-    const slug = data.slug || generateSlug(data.name);
-
-    const existing = await prisma.tag.findUnique({
-      where: { slug },
-    });
-
-    if (existing) {
-      return { error: 'A tag with this slug already exists' };
-    }
-
-    const validated = tagSchema.parse({
-      ...data,
-      slug,
-    });
-
-    const tag = await prisma.tag.create({
-      data: validated,
-    });
-
-    revalidatePath('/blog');
-
-    return { success: true, tag };
-  } catch (error) {
-    console.error('Error creating tag:', error);
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: 'Failed to create tag' };
-  }
-}
-
-export async function updateTag(id: string, data: Partial<TagInput>) {
-  try {
-    const existing = await prisma.tag.findUnique({
-      where: { id },
-    });
-
-    if (!existing) {
-      return { error: 'Tag not found' };
-    }
-
-    const slug = data.slug || existing.slug;
-
-    if (data.slug && data.slug !== existing.slug) {
-      const slugExists = await prisma.tag.findFirst({
-        where: {
-          slug,
-          id: { not: id },
-        },
-      });
-
-      if (slugExists) {
-        return { error: 'A tag with this slug already exists' };
-      }
-    }
-
-    const updateData: any = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.nameAr !== undefined) updateData.nameAr = data.nameAr;
-    if (data.slug !== undefined) updateData.slug = slug;
-
-    const tag = await prisma.tag.update({
-      where: { id },
-      data: updateData,
-    });
-
-    revalidatePath('/blog');
-
-    return { success: true, tag };
-  } catch (error) {
-    console.error('Error updating tag:', error);
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: 'Failed to update tag' };
-  }
-}
-
-export async function deleteTag(id: string) {
-  try {
-    await prisma.tag.delete({
-      where: { id },
-    });
-
-    revalidatePath('/blog');
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting tag:', error);
-    return { error: 'Failed to delete tag' };
-  }
-}
-
-export async function getTags() {
-  try {
-    const tags = await prisma.tag.findMany({
-      orderBy: {
-        name: 'asc',
-      },
-    });
-
-    return tags;
-  } catch (error) {
-    console.error('Error fetching tags:', error);
-    return [];
   }
 }
 

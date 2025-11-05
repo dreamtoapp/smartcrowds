@@ -107,7 +107,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
       email: '',
       idNumber: '',
       nationalityId: '',
-      age: 0,
+      dateOfBirth: '',
       idImageUrl: '',
       personalImageUrl: '',
       agreeToRequirements: false as unknown as true,
@@ -537,23 +537,19 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
-                    {isArabic ? 'العمر' : 'Age'} <span className="text-red-500">*</span>
+                    {isArabic ? 'تاريخ الميلاد' : 'Date of Birth'} <span className="text-red-500">*</span>
                   </label>
                   <Input
-                    type="number"
-                    {...register('age', {
-                      valueAsNumber: true,
-                    })}
-                    min="1"
-                    max="150"
-                    placeholder={tPlaceholders('age')}
+                    type="date"
+                    {...register('dateOfBirth')}
+                    placeholder={isArabic ? 'اختر تاريخ الميلاد' : 'Select date of birth'}
                   />
-                  {errors.age && <p className="text-sm text-red-600 mt-1">{errors.age.message}</p>}
+                  {errors.dateOfBirth && <p className="text-sm text-red-600 mt-1">{errors.dateOfBirth.message}</p>}
                 </div>
               </div>
 
               {renderImageInput(
-                isArabic ? 'صورة الهوية' : 'ID Image',
+                isArabic ? 'صورة الهوية من توكلنا' : 'ID Image',
                 idImageFile,
                 idImagePreview,
                 idImageInputRef,
@@ -563,7 +559,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
               {errors.idImageUrl && <p className="text-sm text-red-600 mt-1">{errors.idImageUrl.message}</p>}
 
               {renderImageInput(
-                isArabic ? 'الصورة الشخصية' : 'Personal Image',
+                isArabic ? 'الصورة الشخصية  خلفية بيضاء' : 'Personal Image',
                 personalImageFile,
                 personalImagePreview,
                 personalImageInputRef,

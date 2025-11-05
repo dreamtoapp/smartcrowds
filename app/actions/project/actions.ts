@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { projectSchema, projectImageSchema, type ProjectInput, type ProjectImageInput } from '@/lib/validations/project';
 import { revalidatePath } from 'next/cache';
+import { ZodError } from 'zod';
 
 // Helper to generate slug from name
 function generateSlug(text: string): string {
@@ -21,11 +22,18 @@ export async function createProject(data: Omit<ProjectInput, 'slug'> & { slug?: 
     const locale = data.locale || 'en';
     
     // Generate slug based on locale
-    const slug = data.slug || generateSlug(
+    let slug = (data.slug && data.slug.trim()) || generateSlug(
       locale === 'ar' && data.nameAr 
         ? data.nameAr 
         : data.name || ''
     );
+
+    // Ensure slug is not empty (fallback if generateSlug returned empty)
+    if (!slug || slug.trim() === '') {
+      const timestamp = Date.now().toString(36);
+      const random = Math.random().toString(36).substring(2, 8);
+      slug = `project-${timestamp}-${random}`;
+    }
 
     // Check if slug exists
     const existing = await prisma.project.findUnique({
@@ -36,10 +44,18 @@ export async function createProject(data: Omit<ProjectInput, 'slug'> & { slug?: 
       return { error: 'A project with this slug already exists' };
     }
 
-    const validated = projectSchema.parse({
+    // Use safeParse to handle validation errors gracefully
+    const validationResult = projectSchema.safeParse({
       ...data,
       slug,
     });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      return { error: `Validation failed: ${errors}` };
+    }
+
+    const validated = validationResult.data;
 
     // Ensure name is never empty - use nameAr as fallback if name is empty
     const finalName = (validated.name && validated.name.trim()) 
@@ -78,6 +94,10 @@ export async function createProject(data: Omit<ProjectInput, 'slug'> & { slug?: 
     return { success: true, project };
   } catch (error) {
     console.error('Error creating project:', error);
+    if (error instanceof ZodError) {
+      const errors = error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      return { error: `Validation failed: ${errors}` };
+    }
     if (error instanceof Error) {
       return { error: error.message };
     }

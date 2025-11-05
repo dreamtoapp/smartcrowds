@@ -1,5 +1,5 @@
 import EventForm from '@/components/dashboard/events/EventForm';
-import { listLocations } from '@/app/actions/locations/actions';
+import { listLocations } from '../actions/actions';
 
 export default async function NewEventPage({
   params,

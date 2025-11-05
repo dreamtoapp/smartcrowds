@@ -16,8 +16,6 @@ export const postSchema = z.object({
   seoTitle: z.string().max(60, 'SEO title is too long').optional(),
   seoDescription: z.string().max(160, 'SEO description is too long').optional(),
   keywords: z.array(z.string()).default([]),
-  categoryIds: z.array(z.string()).default([]),
-  tagIds: z.array(z.string()).default([]),
 });
 
 export const categorySchema = z.object({

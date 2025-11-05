@@ -2,13 +2,21 @@
 
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/lib/routing';
-import { Mail, Phone, MapPin, Instagram, Twitter } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import Image from 'next/image';
+import facebookSvg from '@/components/icons/facebook.svg';
+import instagramSvg from '@/components/icons/instagram.svg';
+import linkedinSvg from '@/components/icons/linkedin.svg';
+import xSvg from '@/components/icons/icons8-x.svg';
+import snapchatSvg from '@/components/icons/snapchat.svg';
 
 export function Footer() {
   const t = useTranslations('common.nav');
   const locale = useLocale();
 
   const currentYear = new Date().getFullYear();
+
+  // Using local correct brand SVGs via next/image
 
   return (
     <footer className="border-t border-border/40 bg-muted/30 relative">
@@ -105,35 +113,79 @@ export function Footer() {
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5" />
-                <span>
+                <span className="break-words">
                   Al-Rusaifah, Third Ring Road – Al-Sharif Yahya Tower, Makkah
                 </span>
               </li>
             </ul>
             <div className="flex gap-4 mt-4">
-              <a
-                href="https://instagram.com/SMARTCROWD.SA"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
-              >
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a
-                href="https://twitter.com/SMARTCROWD.SA"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
+              {process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK && (
+                <a
+                  href={process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
+                >
+                  <Image src={facebookSvg} alt="Facebook" width={20} height={20} />
+                </a>
+              )}
+              {process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM && (
+                <a
+                  href={process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
+                >
+                  <Image src={instagramSvg} alt="Instagram" width={20} height={20} />
+                </a>
+              )}
+              {process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN && (
+                <a
+                  href={process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                  className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
+                >
+                  <Image src={linkedinSvg} alt="LinkedIn" width={20} height={20} />
+                </a>
+              )}
+              {process.env.NEXT_PUBLIC_SOCIAL_TWITTER && (
+                <a
+                  href={process.env.NEXT_PUBLIC_SOCIAL_TWITTER}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Twitter/X"
+                  className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
+                >
+                  <Image src={xSvg} alt="X" width={20} height={20} />
+                </a>
+              )}
+              {process.env.NEXT_PUBLIC_SOCIAL_SNAPCHAT && (
+                <a
+                  href={process.env.NEXT_PUBLIC_SOCIAL_SNAPCHAT}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Snapchat"
+                  className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
+                >
+                  <Image src={snapchatSvg} alt="Snapchat" width={20} height={20} />
+                </a>
+              )}
             </div>
           </div>
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>
-            © {currentYear} SMART CROWD. All rights reserved.
+          <p>© {currentYear} SMART CROWD. All rights reserved.</p>
+          <p className="mt-2">
+            {locale === 'ar' ? (
+              <>تم التطوير بواسطة <a href="https://dreamto.app" className="underline-offset-2 hover:underline">Dream to App</a></>
+            ) : (
+              <>Website by <a href="https://dreamto.app" className="underline-offset-2 hover:underline">Dream to App</a></>
+            )}
           </p>
         </div>
       </div>

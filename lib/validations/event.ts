@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { validateSaudiID } from './saudi-id';
+// Simplified validations; Saudi ID check moved to basic pattern checks
 
 // Schema for basic event creation (without requirements and jobs)
 export const eventBasicSchema = z.object({
@@ -97,27 +97,33 @@ export function createRegistrationInputSchema(
     name: z.string().min(2, translations.nameTooShort).max(100, translations.nameTooLong),
     mobile: z.string().min(5, translations.mobileTooShort).max(15, translations.mobileTooLong),
     email: z.string().email(translations.invalidEmail).max(255, translations.emailTooLong),
-    idNumber: z.string()
-      .min(10, translations.idNumberLength)
-      .max(10, translations.idNumberLength)
+    idNumber: z
+      .string()
+      .regex(/^[12][0-9]{9}$/, translations.idNumberInvalid),
+    nationalityId: z.string().min(1, translations.nationalityRequired),
+    dateOfBirth: z
+      .string()
+      .min(1, translations.ageMin)
       .superRefine((val, ctx) => {
-        if (typeof val !== 'string') {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: translations.idNumberNotString });
+        const date = new Date(val);
+        if (Number.isNaN(date.getTime())) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: translations.ageMin });
           return;
         }
-        const validation = validateSaudiID(val, {
-          notString: translations.idNumberNotString,
-          digitsOnly: translations.idNumberDigitsOnly,
-          length: translations.idNumberLength,
-          invalidFormat: translations.idNumberInvalidFormat,
-          checkDigit: translations.idNumberCheckDigit,
-        });
-        if (!validation.valid) {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: validation.error || translations.idNumberInvalid });
+        const now = new Date();
+        if (date > now) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: translations.ageMin });
+          return;
+        }
+        const ageMs = now.getTime() - date.getTime();
+        const ageYears = Math.floor(ageMs / (365.2425 * 24 * 60 * 60 * 1000));
+        if (ageYears < 1) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: translations.ageMin });
+        }
+        if (ageYears > 150) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: translations.ageMax });
         }
       }),
-    nationalityId: z.string().min(1, translations.nationalityRequired),
-    age: z.coerce.number().int().positive(translations.agePositive).min(1, translations.ageMin).max(150, translations.ageMax),
     idImageUrl: z.string().min(1, translations.idImageRequired),
     personalImageUrl: z.string().min(1, translations.personalImageRequired),
     agreeToRequirements: z.boolean().refine((v) => v === true, { message: translations.agreeRequired }),
@@ -131,20 +137,33 @@ export const registrationInputSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
   mobile: z.string().min(5, 'Mobile number is too short'),
   email: z.string().email('Invalid email'),
-  idNumber: z.string()
-    .min(1, 'ID number is required')
+  idNumber: z
+    .string()
+    .regex(/^[12][0-9]{9}$/,'Invalid ID number'),
+  nationalityId: z.string().min(1, 'Nationality is required'),
+  dateOfBirth: z
+    .string()
+    .min(1, 'Date of birth is required')
     .superRefine((val, ctx) => {
-      if (typeof val !== 'string') {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid ID number' });
+      const date = new Date(val);
+      if (Number.isNaN(date.getTime())) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid date of birth' });
         return;
       }
-      const validation = validateSaudiID(val);
-      if (!validation.valid) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: validation.error || 'Invalid ID number' });
+      const now = new Date();
+      if (date > now) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Date of birth cannot be in the future' });
+        return;
+      }
+      const ageMs = now.getTime() - date.getTime();
+      const ageYears = Math.floor(ageMs / (365.2425 * 24 * 60 * 60 * 1000));
+      if (ageYears < 1) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Age must be at least 1' });
+      }
+      if (ageYears > 150) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Age must be at most 150' });
       }
     }),
-  nationalityId: z.string().min(1, 'Nationality is required'),
-  age: z.coerce.number().int().positive('Age must be a positive number').min(1, 'Age must be at least 1').max(150, 'Age must be at most 150'),
   idImageUrl: z.string().url().optional().or(z.literal('')).default(''),
   personalImageUrl: z.string().url().optional().or(z.literal('')).default(''),
   agreeToRequirements: z.boolean().refine((v) => v === true, { message: 'You must agree to the requirements' }),

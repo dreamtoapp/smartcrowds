@@ -20,6 +20,7 @@ interface SubscriberDetailDialogProps {
     email: string;
     idNumber: string;
     age: number;
+    dateOfBirth?: Date | string | null;
     idImageUrl: string | null;
     personalImageUrl: string | null;
     createdAt: Date;
@@ -32,6 +33,7 @@ interface SubscriberDetailDialogProps {
       nameAr: string;
       nameEn: string;
     } | null;
+    accepted?: boolean;
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -126,6 +128,28 @@ export function SubscriberDetailDialog({
               </label>
               <p className="text-base">{subscriber.age}</p>
             </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-muted-foreground">
+              {isArabic ? 'الحالة' : 'Status'}
+            </label>
+            {subscriber.accepted ? (
+              <Badge variant="secondary" className="text-xs">
+                {isArabic ? 'مقبول' : 'Accepted'}
+              </Badge>
+            ) : (
+              <span className="text-xs text-muted-foreground">{isArabic ? 'غير مقبول' : 'Not accepted'}</span>
+            )}
+          </div>
+          {subscriber.dateOfBirth && (
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-muted-foreground">
+                {isArabic ? 'تاريخ الميلاد' : 'Date of Birth'}
+              </label>
+              <p className="text-base">
+                {format(new Date(subscriber.dateOfBirth), 'PPP')}
+              </p>
+            </div>
+          )}
             <div className="space-y-1">
               <label className="text-sm font-medium text-muted-foreground">
                 {isArabic ? 'تاريخ التسجيل' : 'Registration Date'}

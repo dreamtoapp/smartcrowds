@@ -23,33 +23,6 @@ model Author {
   @@map("authors")
 }
 
-model Category {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  nameAr      String?
-  slug        String   @unique
-  description String?
-  descriptionAr String?
-  locale      String   @default("en")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  posts       PostCategory[]
-
-  @@map("categories")
-}
-
-model Tag {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  nameAr    String?
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     PostTag[]
-
-  @@map("tags")
-}
-
 model Post {
   id              String    @id @default(auto()) @map("_id") @db.ObjectId
   title           String
@@ -71,33 +44,9 @@ model Post {
   readingTime     Int?      @default(0)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  categories      PostCategory[]
-  tags            PostTag[]
 
   @@map("posts")
   @@index([published, publishedAt])
-}
-
-model PostCategory {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  postId     String   @db.ObjectId
-  categoryId String   @db.ObjectId
-  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, categoryId])
-  @@map("post_categories")
-}
-
-model PostTag {
-  id     String   @id @default(auto()) @map("_id") @db.ObjectId
-  postId String   @db.ObjectId
-  tagId  String   @db.ObjectId
-  post   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag    Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, tagId])
-  @@map("post_tags")
 }
 
 model Project {
@@ -220,6 +169,8 @@ model EventSubscriber {
   email           String
   idNumber        String
   age             Int
+  dateOfBirth     DateTime?
+  accepted        Boolean  @default(false)
   idImageUrl      String?
   personalImageUrl String?
   createdAt       DateTime @default(now())

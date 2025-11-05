@@ -6,7 +6,10 @@ export const projectSchema = z.object({
   slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
   description: z.string().max(2000, 'Description is too long').optional(),
   descriptionAr: z.string().max(2000, 'Description is too long').optional(),
-  featuredImage: z.string().url().optional().or(z.literal('')),
+  featuredImage: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? null : val),
+    z.string().url('Invalid image URL').nullable().optional()
+  ),
   locale: z.enum(['en', 'ar']).default('en'),
   seoTitle: z.string().max(60, 'SEO title is too long').optional(),
   seoDescription: z.string().max(160, 'SEO description is too long').optional(),
