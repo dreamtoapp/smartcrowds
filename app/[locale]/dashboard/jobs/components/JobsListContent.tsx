@@ -7,7 +7,8 @@ interface JobsListContentProps {
 }
 
 export async function JobsListContent({ locale }: JobsListContentProps) {
-  const jobs = await listJobs();
+  type JobItem = { id: string; name: string; description?: string | null };
+  const jobs = (await listJobs()) as unknown as JobItem[];
   const t = (en: string, ar: string) => (locale === 'ar' ? ar : en);
 
   return (
@@ -19,7 +20,7 @@ export async function JobsListContent({ locale }: JobsListContentProps) {
         </Link>
       </div>
       <div className="space-y-2">
-        {jobs.map((job) => (
+        {jobs.map((job: JobItem) => (
           <div key={job.id} className="flex items-center justify-between border rounded-md p-3">
             <div>
               <div className="font-medium">{job.name}</div>

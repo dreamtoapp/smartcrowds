@@ -16,7 +16,17 @@ export async function ProjectsContent({ locale }: ProjectsContentProps) {
     limit: 50,
   });
 
-  const projects = result?.projects || [];
+  type PublicProject = {
+    id: string;
+    slug: string;
+    name?: string | null;
+    nameAr?: string | null;
+    description?: string | null;
+    descriptionAr?: string | null;
+    featuredImage?: string | null;
+    locale?: 'en' | 'ar' | string;
+  };
+  const projects: PublicProject[] = (result?.projects as any[]) || [];
   const isArabic = locale === 'ar';
 
   return (
@@ -41,7 +51,7 @@ export async function ProjectsContent({ locale }: ProjectsContentProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
+            {projects.map((project: PublicProject) => (
               <Card
                 key={project.id}
                 className="h-full hover:shadow-lg transition-shadow overflow-hidden"

@@ -12,8 +12,22 @@ interface EventsListContentProps {
   locale: string;
 }
 
+type DashboardEvent = {
+  id: string;
+  title: string;
+  date: string | Date;
+  imageUrl?: string | null;
+  published?: boolean | null;
+  acceptJobs?: boolean | null;
+  completed?: boolean | null;
+  location?: { city?: string | null } | null;
+  requirements?: unknown[] | null;
+  jobs?: unknown[] | null;
+  subscribers?: Array<{ accepted?: boolean | null }> | null;
+};
+
 export async function EventsListContent({ locale }: EventsListContentProps) {
-  const events = await listEvents();
+  const events = (await listEvents()) as unknown as DashboardEvent[];
   const isArabic = locale === 'ar';
 
   return (
@@ -26,7 +40,7 @@ export async function EventsListContent({ locale }: EventsListContentProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.map((event) => {
+        {events.map((event: DashboardEvent) => {
           const requirementsCount = event.requirements?.length || 0;
           const jobsCount = event.jobs?.length || 0;
           const subscribersCount = event.subscribers?.length || 0;

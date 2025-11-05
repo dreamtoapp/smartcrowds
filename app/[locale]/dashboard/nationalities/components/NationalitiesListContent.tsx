@@ -7,7 +7,8 @@ interface NationalitiesListContentProps {
 }
 
 export async function NationalitiesListContent({ locale }: NationalitiesListContentProps) {
-  const nationalities = await listNationalities();
+  type NationalityItem = { id: string; nameAr: string; nameEn: string };
+  const nationalities = (await listNationalities()) as unknown as NationalityItem[];
   const t = (en: string, ar: string) => (locale === 'ar' ? ar : en);
 
   return (
@@ -24,7 +25,7 @@ export async function NationalitiesListContent({ locale }: NationalitiesListCont
             {t('No nationalities yet', 'لا توجد جنسيات بعد')}
           </div>
         ) : (
-          nationalities.map((nationality) => (
+          nationalities.map((nationality: NationalityItem) => (
             <div key={nationality.id} className="flex items-center justify-between border rounded-md p-3">
               <div>
                 <div className="font-medium">

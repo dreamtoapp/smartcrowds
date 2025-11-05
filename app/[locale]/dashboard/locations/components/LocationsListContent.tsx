@@ -7,7 +7,8 @@ interface LocationsListContentProps {
 }
 
 export async function LocationsListContent({ locale }: LocationsListContentProps) {
-  const locations = await listLocations();
+  type LocationItem = { id: string; city: string; address?: string | null };
+  const locations = (await listLocations()) as unknown as LocationItem[];
   const t = (en: string, ar: string) => (locale === 'ar' ? ar : en);
 
   return (
@@ -19,7 +20,7 @@ export async function LocationsListContent({ locale }: LocationsListContentProps
         </Link>
       </div>
       <div className="space-y-2">
-        {locations.map((loc) => (
+        {locations.map((loc: LocationItem) => (
           <div key={loc.id} className="flex items-center justify-between border rounded-md p-3">
             <div>
               <div className="font-medium">{loc.city}</div>

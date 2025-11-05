@@ -18,7 +18,21 @@ export async function ProjectsListContent({ locale, currentPage }: ProjectsListC
     limit: 20,
   });
 
-  const { projects = [], pagination = { page: 1, limit: 20, total: 0, totalPages: 0 } } = result || {};
+  type DashboardProject = {
+    id: string;
+    name?: string | null;
+    nameAr?: string | null;
+    slug?: string | null;
+    description?: string | null;
+    descriptionAr?: string | null;
+    featuredImage?: string | null;
+    locale?: 'en' | 'ar' | string;
+    published?: boolean | null;
+    featured?: boolean | null;
+    images?: Array<unknown> | null;
+  };
+  const pagination = (result && result.pagination) || { page: 1, limit: 20, total: 0, totalPages: 0 };
+  const projects: DashboardProject[] = (result?.projects as any[]) || [];
   const isArabic = locale === 'ar';
 
   return (
@@ -60,7 +74,7 @@ export async function ProjectsListContent({ locale, currentPage }: ProjectsListC
             </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {projects.map((project) => (
+              {projects.map((project: DashboardProject) => (
                 <Card
                   key={project.id}
                   className="overflow-hidden hover:shadow-lg transition-shadow"

@@ -447,7 +447,13 @@ export async function exportEventSubscribersToCSV(eventId: string) {
     ];
 
     // CSV Rows
-    const rows = subscribers.map((subscriber) => [
+    type CsvSub = {
+      name: string; mobile: string; email: string; idNumber: string; age: number;
+      jobRequirement?: { job?: { name?: string | null } | null; ratePerDay?: number | null } | null;
+      idImageUrl?: string | null; personalImageUrl?: string | null; createdAt: Date | string;
+      nationality?: { nameEn?: string | null } | null;
+    };
+    const rows = (subscribers as unknown as CsvSub[]).map((subscriber) => [
       subscriber.name,
       subscriber.mobile,
       subscriber.email,

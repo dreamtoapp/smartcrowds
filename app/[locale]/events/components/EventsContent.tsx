@@ -12,7 +12,17 @@ interface EventsContentProps {
 }
 
 export async function EventsContent({ locale }: EventsContentProps) {
-  const events = await listEvents();
+  type PublicEvent = {
+    id: string;
+    title: string;
+    date: string | Date;
+    imageUrl?: string | null;
+    acceptJobs?: boolean | null;
+    location?: { city?: string | null } | null;
+    jobs: Array<{ id: string; ratePerDay?: number | null; job?: { name?: string | null } | null }>;
+    subscribers?: unknown[] | null;
+  };
+  const events = (await listEvents()) as unknown as PublicEvent[];
   const isArabic = locale === 'ar';
 
   return (
@@ -28,7 +38,7 @@ export async function EventsContent({ locale }: EventsContentProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {events.map((event) => {
+          {events.map((event: PublicEvent) => {
             const jobsCount = event.jobs?.length || 0;
             const subscribersCount = event.subscribers?.length || 0;
             

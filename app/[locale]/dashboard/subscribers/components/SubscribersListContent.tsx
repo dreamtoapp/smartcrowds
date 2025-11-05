@@ -7,18 +7,36 @@ interface SubscribersListContentProps {
 }
 
 export async function SubscribersListContent({ locale }: SubscribersListContentProps) {
-  const subscribers = await listAllSubscribers();
+  type Subscriber = {
+    id: string;
+    name: string;
+    mobile: string;
+    email: string;
+    idNumber: string;
+    nationality: { nameAr: string; nameEn: string } | null;
+    age: number;
+    idImageUrl: string | null;
+    personalImageUrl: string | null;
+    createdAt: Date;
+    jobRequirement?: { id: string; job: { name: string } | null; ratePerDay: number | null } | null;
+    event?: { title?: string | null } | null;
+  };
+  const subscribersRaw = (await listAllSubscribers()) as unknown as Subscriber[];
+  const subscribers: Subscriber[] = subscribersRaw.map((s) => ({
+    ...s,
+    createdAt: s.createdAt instanceof Date ? s.createdAt : new Date(s.createdAt as any),
+  }));
   const isArabic = locale === 'ar';
 
   // Group subscribers by event
-  const subscribersByEvent = subscribers.reduce((acc, subscriber) => {
+  const subscribersByEvent = subscribers.reduce((acc: Record<string, Subscriber[]>, subscriber: Subscriber) => {
     const eventTitle = subscriber.event?.title || 'Unknown Event';
     if (!acc[eventTitle]) {
       acc[eventTitle] = [];
     }
     acc[eventTitle].push(subscriber);
     return acc;
-  }, {} as Record<string, typeof subscribers>);
+  }, {} as Record<string, Subscriber[]>);
 
   const eventTitles = Object.keys(subscribersByEvent).sort();
 
