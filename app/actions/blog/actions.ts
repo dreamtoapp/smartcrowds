@@ -2,7 +2,6 @@
 
 import { prisma } from '@/lib/prisma';
 import { postSchema, type PostInput } from '@/lib/validations/blog';
-import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { calculateReadingTime } from '@/lib/utils/blog';
 
@@ -217,7 +216,7 @@ export async function getPosts(options?: {
       limit = 10,
     } = options || {};
 
-    const where: Prisma.PostWhereInput = {};
+    const where: { locale?: string; published?: boolean } = {};
 
     // Only filter by locale if explicitly provided
     if (locale !== undefined && locale !== null) {
