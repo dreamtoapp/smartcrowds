@@ -182,15 +182,15 @@ export async function updateEventRequirementsAndJobs(eventId: string, data: unkn
     });
 
     // Get existing jobs
-    const existingJobs = await prisma.eventJobRequirement.findMany({
+    const existingJobs = (await prisma.eventJobRequirement.findMany({
       where: { eventId },
-    });
+    })) as Array<{ id: string; jobId: string }>;
 
     // Remove jobs that are no longer in the list
-    const existingJobIds = new Set(existingJobs.map(j => j.jobId));
-    const newJobIds = new Set(validated.jobs.map(j => j.jobId));
+    const existingJobIds = new Set(existingJobs.map((j: { jobId: string }) => j.jobId));
+    const newJobIds = new Set((validated.jobs as Array<{ jobId: string; ratePerDay: number }>).map((j) => j.jobId));
     
-    const jobsToRemove = existingJobs.filter(j => !newJobIds.has(j.jobId));
+    const jobsToRemove = existingJobs.filter((j: { jobId: string }) => !newJobIds.has(j.jobId));
     await Promise.all(
       jobsToRemove.map(job => 
         prisma.eventJobRequirement.delete({ where: { id: job.id } })
