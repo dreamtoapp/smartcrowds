@@ -2,7 +2,6 @@
 
 import { prisma } from '@/lib/prisma';
 import { clientSchema, type ClientInput } from '@/lib/validations/client';
-import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
 export async function createClient(input: ClientInput) {
@@ -65,7 +64,7 @@ export async function deleteClient(id: string) {
 
 export async function listClients(options?: { published?: boolean }) {
   try {
-    const where: Prisma.ClientWhereInput = {};
+    const where: { published?: boolean } = {};
     if (options?.published !== undefined) where.published = options.published;
     const clients = await prisma.client.findMany({
       where,
