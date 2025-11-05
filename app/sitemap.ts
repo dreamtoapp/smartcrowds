@@ -42,10 +42,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       limit: 1000,
     });
 
-    posts.forEach((post) => {
+    const typedPosts = (posts as unknown as Array<{ slug: string; updatedAt: string | Date }>);
+    typedPosts.forEach((post) => {
       sitemapEntries.push({
         url: `${baseUrl}/${locale}/blog/${post.slug}`,
-        lastModified: post.updatedAt,
+        lastModified: post.updatedAt as any,
         changeFrequency: 'weekly',
         priority: 0.7,
         alternates: {
