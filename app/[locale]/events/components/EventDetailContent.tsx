@@ -80,7 +80,7 @@ export async function EventDetailContent({ locale, id }: EventDetailContentProps
             </CardHeader>
             <CardContent className="space-y-6">
               <ul className="list-disc ms-6 space-y-2 text-muted-foreground">
-                {event.requirements.map((r, i) => (
+                {event.requirements.map((r: string, i: number) => (
                   <li key={i} className="leading-relaxed">{r}</li>
                 ))}
               </ul>

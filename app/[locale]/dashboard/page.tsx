@@ -93,7 +93,7 @@ export default async function DashboardPage({
               </p>
             ) : (
               <div className="space-y-3">
-                {stats.recentProjects.map((project: any) => (
+                {stats.recentProjects.map((project: { id: string; name?: string | null; nameAr?: string | null; createdAt: string | Date; published?: boolean | null }) => (
                   <div
                     key={project.id}
                     className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors"
@@ -149,7 +149,7 @@ export default async function DashboardPage({
               </p>
             ) : (
               <div className="space-y-3">
-                {stats.recentPosts.map((post: any) => (
+                {stats.recentPosts.map((post: { id: string; title?: string | null; titleAr?: string | null; createdAt: string | Date; published?: boolean | null }) => (
                   <div
                     key={post.id}
                     className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors"

@@ -15,6 +15,7 @@ import { useRouter } from '@/lib/routing';
 import { showSuccessSwal } from '@/lib/utils/swal';
 
 type FormValues = z.infer<typeof clientSchema>;
+type ClientItem = { id: string; name: string; logoUrl: string; websiteUrl?: string | null; published: boolean; order: number };
 
 export function EditClientForm({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
@@ -29,8 +30,8 @@ export function EditClientForm({ id }: { id: string }) {
 
   useEffect(() => {
     (async () => {
-      const clients = (await listClients()) as any[];
-      const client = clients.find((c) => c.id === id);
+      const clients = (await listClients()) as unknown as ClientItem[];
+      const client = clients.find((c: ClientItem) => c.id === id);
       if (client) {
         form.reset({
           name: client.name,
@@ -48,7 +49,7 @@ export function EditClientForm({ id }: { id: string }) {
     setSubmitting(true);
     const res = await updateClient(id, { ...values, websiteUrl: values.websiteUrl || undefined });
     setSubmitting(false);
-    if ((res as any)?.success) {
+    if ((res as { success?: boolean })?.success) {
       await showSuccessSwal(locale === 'ar' ? 'تم تحديث العميل بنجاح' : 'Client updated successfully', locale);
       router.push('/dashboard/clients');
     }

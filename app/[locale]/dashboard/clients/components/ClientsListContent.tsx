@@ -29,7 +29,7 @@ export function ClientsListContent() {
 
   async function handleDelete(id: string) {
     const res = await deleteClient(id);
-    if ((res as any)?.success) {
+    if ((res as { success?: boolean })?.success) {
       setClients((prev) => prev.filter((c) => c.id !== id));
     }
   }

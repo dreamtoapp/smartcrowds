@@ -26,7 +26,7 @@ export async function ProjectsContent({ locale }: ProjectsContentProps) {
     featuredImage?: string | null;
     locale?: 'en' | 'ar' | string;
   };
-  const projects: PublicProject[] = (result?.projects as any[]) || [];
+  const projects: PublicProject[] = (result?.projects as unknown[]) as PublicProject[] || [];
   const isArabic = locale === 'ar';
 
   return (

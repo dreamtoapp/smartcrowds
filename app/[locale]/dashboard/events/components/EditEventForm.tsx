@@ -11,7 +11,16 @@ import { updateEvent } from '@/app/actions/events/actions';
 import { useRouter } from '@/lib/routing';
 
 interface EditEventFormProps {
-  event: any;
+  event: {
+    id: string;
+    title?: string;
+    description?: string;
+    date: string | Date;
+    imageUrl?: string | null;
+    locationId?: string | null;
+    acceptJobs?: boolean | null;
+    published?: boolean | null;
+  };
   locations: Array<{ id: string; city: string }>;
   locale: string;
 }

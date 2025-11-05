@@ -35,7 +35,7 @@ export async function BlogListContent({ locale, currentPage }: BlogListContentPr
   });
   
   const pagination = (result && result.pagination) || { page: 1, limit: 20, total: 0, totalPages: 0 };
-  const posts: DashboardPost[] = (result?.posts as any[]) || [];
+  const posts: DashboardPost[] = (result?.posts as unknown[]) as DashboardPost[] || [];
 
   const isArabic = locale === 'ar';
 

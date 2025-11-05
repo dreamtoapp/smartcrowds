@@ -5,7 +5,7 @@ import { listEvents as listAllEvents, getEventById as getEventByIdAction } from 
 export async function listEvents() {
   const events = await listAllEvents();
   // Return only published events on the public site
-  return events.filter((e: any) => e.published === true);
+  return events.filter((e: { published?: boolean | null }) => e.published === true);
 }
 
 export async function getEventById(id: string) {

@@ -24,7 +24,7 @@ export async function SubscribersListContent({ locale }: SubscribersListContentP
   const subscribersRaw = (await listAllSubscribers()) as unknown as Subscriber[];
   const subscribers: Subscriber[] = subscribersRaw.map((s) => ({
     ...s,
-    createdAt: s.createdAt instanceof Date ? s.createdAt : new Date(s.createdAt as any),
+    createdAt: s.createdAt instanceof Date ? s.createdAt : new Date(s.createdAt as string),
   }));
   const isArabic = locale === 'ar';
 

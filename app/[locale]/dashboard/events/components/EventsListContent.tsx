@@ -44,7 +44,7 @@ export async function EventsListContent({ locale }: EventsListContentProps) {
           const requirementsCount = event.requirements?.length || 0;
           const jobsCount = event.jobs?.length || 0;
           const subscribersCount = event.subscribers?.length || 0;
-          const acceptedCount = (event.subscribers || []).filter((s: any) => s.accepted).length;
+          const acceptedCount = (event.subscribers || []).filter((s: { accepted?: boolean | null }) => !!s.accepted).length;
           const isPublished = event.published ?? false;
           
           return (

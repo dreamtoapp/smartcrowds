@@ -30,7 +30,7 @@ export function NewClientForm() {
     setSubmitting(true);
     const res = await createClient({ ...values, websiteUrl: values.websiteUrl || undefined });
     setSubmitting(false);
-    if ((res as any)?.success) {
+    if ((res as { success?: boolean })?.success) {
       await showSuccessSwal(locale === 'ar' ? 'تم حفظ العميل بنجاح' : 'Client saved successfully', locale);
       router.push('/dashboard/clients');
     }

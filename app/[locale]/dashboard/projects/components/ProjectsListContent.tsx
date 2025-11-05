@@ -32,7 +32,7 @@ export async function ProjectsListContent({ locale, currentPage }: ProjectsListC
     images?: Array<unknown> | null;
   };
   const pagination = (result && result.pagination) || { page: 1, limit: 20, total: 0, totalPages: 0 };
-  const projects: DashboardProject[] = (result?.projects as any[]) || [];
+  const projects: DashboardProject[] = (result?.projects as unknown[]) as DashboardProject[] || [];
   const isArabic = locale === 'ar';
 
   return (
