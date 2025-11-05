@@ -3,7 +3,8 @@
 import { prisma } from '@/lib/prisma';
 import { projectSchema, projectImageSchema, type ProjectInput, type ProjectImageInput } from '@/lib/validations/project';
 import { revalidatePath } from 'next/cache';
-import { ZodError } from 'zod';
+import { ZodError, z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 // Helper to generate slug from name
 function generateSlug(text: string): string {
@@ -51,7 +52,7 @@ export async function createProject(data: Omit<ProjectInput, 'slug'> & { slug?: 
     });
 
     if (!validationResult.success) {
-      const errors = validationResult.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const errors = validationResult.error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
       return { error: `Validation failed: ${errors}` };
     }
 
@@ -95,7 +96,7 @@ export async function createProject(data: Omit<ProjectInput, 'slug'> & { slug?: 
   } catch (error) {
     console.error('Error creating project:', error);
     if (error instanceof ZodError) {
-      const errors = error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const errors = error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
       return { error: `Validation failed: ${errors}` };
     }
     if (error instanceof Error) {
@@ -130,7 +131,7 @@ export async function updateProject(id: string, data: Partial<ProjectInput> & { 
       }
     }
 
-    const updateData: any = {};
+    const updateData: Partial<Prisma.ProjectUpdateInput> = {};
     if (data.name !== undefined) {
       // Ensure name is never empty - use nameAr as fallback if name is empty
       updateData.name = (data.name && data.name.trim())
@@ -205,7 +206,7 @@ export async function getProjects(options?: {
     const page = options?.page || 1;
     const limit = options?.limit || 20;
 
-    const where: any = {};
+    const where: Prisma.ProjectWhereInput = {};
     if (options?.locale !== undefined) {
       where.locale = options.locale;
     }
@@ -393,7 +394,7 @@ export async function deleteProjectImage(imageId: string) {
 
 export async function updateProjectImage(imageId: string, data: Partial<ProjectImageInput>) {
   try {
-    const updateData: any = {};
+    const updateData: Partial<Prisma.ProjectImageUpdateInput> = {};
     if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
     if (data.alt !== undefined) updateData.alt = data.alt;
     if (data.altAr !== undefined) updateData.altAr = data.altAr;

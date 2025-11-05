@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { postSchema, type PostInput } from '@/lib/validations/blog';
+import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { calculateReadingTime } from '@/lib/utils/blog';
 
@@ -134,7 +135,7 @@ export async function updatePost(id: string, data: Partial<PostInput> & { slug?:
       authorId = author.id;
     }
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (data.title !== undefined) updateData.title = data.title;
     if (data.titleAr !== undefined) updateData.titleAr = data.titleAr;
     if (data.slug !== undefined) updateData.slug = slug;
@@ -216,7 +217,7 @@ export async function getPosts(options?: {
       limit = 10,
     } = options || {};
 
-    const where: any = {};
+    const where: Prisma.PostWhereInput = {};
 
     // Only filter by locale if explicitly provided
     if (locale !== undefined && locale !== null) {

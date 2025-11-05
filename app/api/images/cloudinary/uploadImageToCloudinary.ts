@@ -58,19 +58,19 @@ export async function uploadImageToCloudinary(
         format: result.format
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[uploadImageToCloudinary] Upload error:', {
       error,
-      message: error?.message,
-      http_code: error?.http_code,
-      name: error?.name,
+      message: (error as any)?.message,
+      http_code: (error as any)?.http_code,
+      name: (error as any)?.name,
       error_type: typeof error
     });
     
     // If preset fails, try without preset
     // Check for preset-related errors: http_code 400 with preset message, or error message about preset
-    const errorMessage = error?.message || error?.error?.message || '';
-    const httpCode = error?.http_code || error?.error?.http_code;
+    const errorMessage = (error as any)?.message || (error as any)?.error?.message || '';
+    const httpCode = (error as any)?.http_code || (error as any)?.error?.http_code;
     const isPresetError = preset && (
       (httpCode === 400 && errorMessage?.toLowerCase().includes('preset')) ||
       errorMessage?.toLowerCase().includes('preset not found') ||
@@ -85,12 +85,12 @@ export async function uploadImageToCloudinary(
         if (process.env.DEBUG_CLOUDINARY === 'true') {
           console.log('[uploadImageToCloudinary] Retry successful');
         }
-      } catch (retryError: any) {
+      } catch (retryError: unknown) {
         console.error('[uploadImageToCloudinary] Retry also failed:', retryError);
-        throw retryError;
+        throw retryError as Error;
       }
     } else {
-      throw error;
+      throw error as Error;
     }
   }
 

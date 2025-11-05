@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { clientSchema, type ClientInput } from '@/lib/validations/client';
+import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
 export async function createClient(input: ClientInput) {
@@ -29,7 +30,7 @@ export async function createClient(input: ClientInput) {
 
 export async function updateClient(id: string, input: Partial<ClientInput>) {
   try {
-    const data: any = {};
+    const data: Partial<{ name: string; logoUrl: string; websiteUrl: string | null; published: boolean; order: number }> = {};
     if (input.name !== undefined) data.name = input.name.trim();
     if (input.logoUrl !== undefined) data.logoUrl = input.logoUrl;
     if (input.websiteUrl !== undefined) data.websiteUrl = input.websiteUrl || null;
@@ -64,7 +65,7 @@ export async function deleteClient(id: string) {
 
 export async function listClients(options?: { published?: boolean }) {
   try {
-    const where: any = {};
+    const where: Prisma.ClientWhereInput = {};
     if (options?.published !== undefined) where.published = options.published;
     const clients = await prisma.client.findMany({
       where,

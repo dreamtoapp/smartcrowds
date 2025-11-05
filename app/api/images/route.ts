@@ -150,20 +150,20 @@ export async function POST(req: NextRequest) {
           table
         });
       }
-    } catch (cloudinaryError: any) {
+    } catch (cloudinaryError: unknown) {
       console.error('[CLOUDINARY UPLOAD ERROR]', {
         error: cloudinaryError,
-        message: cloudinaryError?.message,
-        http_code: cloudinaryError?.http_code,
-        name: cloudinaryError?.name,
-        stack: cloudinaryError?.stack,
+        message: (cloudinaryError as any)?.message,
+        http_code: (cloudinaryError as any)?.http_code,
+        name: (cloudinaryError as any)?.name,
+        stack: (cloudinaryError as any)?.stack,
         error_type: typeof cloudinaryError,
-        stringified: JSON.stringify(cloudinaryError, Object.getOwnPropertyNames(cloudinaryError))
+        stringified: JSON.stringify(cloudinaryError as any, Object.getOwnPropertyNames(cloudinaryError as any))
       });
       
-      const errorMessage = cloudinaryError?.message || 
-                           cloudinaryError?.http_code ? `HTTP ${cloudinaryError.http_code}` : 
-                           typeof cloudinaryError === 'string' ? cloudinaryError : 
+      const errorMessage = (cloudinaryError as any)?.message || 
+                           (cloudinaryError as any)?.http_code ? `HTTP ${(cloudinaryError as any).http_code}` : 
+                           typeof cloudinaryError === 'string' ? (cloudinaryError as string) : 
                            'Unknown Cloudinary error';
       
       return NextResponse.json({

@@ -387,13 +387,16 @@ export async function updateSubscriberAccepted(subscriberId: string, accepted: b
 
 export async function bulkUpdateSubscribersAccepted(ids: string[], accepted: boolean) {
   try {
-    const subs = await prisma.eventSubscriber.findMany({ where: { id: { in: ids } } });
+    const subs = (await prisma.eventSubscriber.findMany({
+      where: { id: { in: ids } },
+      select: { eventId: true },
+    })) as Array<{ eventId: string }>; 
     if (subs.length === 0) return { success: true };
     await prisma.eventSubscriber.updateMany({ where: { id: { in: ids } }, data: { accepted } });
-    const eventIds = Array.from(new Set(subs.map(s => s.eventId)));
+    const eventIds = Array.from(new Set(subs.map((s: { eventId: string }) => s.eventId)));
     revalidatePath('/ar/dashboard/events');
     revalidatePath('/en/dashboard/events');
-    for (const eid of eventIds) {
+    for (const eid of eventIds as string[]) {
       revalidatePath(`/ar/dashboard/events/${eid}/subscribers`);
       revalidatePath(`/en/dashboard/events/${eid}/subscribers`);
     }
@@ -581,7 +584,7 @@ const updateEventSchema = z.object({
 export async function updateEvent(eventId: string, input: unknown) {
   try {
     const data = updateEventSchema.parse(input);
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.date !== undefined) updateData.date = new Date(data.date);

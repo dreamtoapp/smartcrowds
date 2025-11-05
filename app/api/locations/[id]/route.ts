@@ -14,8 +14,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     revalidatePath('/ar/dashboard/locations');
     revalidatePath('/en/dashboard/locations');
     return NextResponse.json(updated);
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'error' }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
