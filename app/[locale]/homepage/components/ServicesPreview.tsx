@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from '@/lib/routing';
 import { motion } from 'framer-motion';
 import {
+  ArrowUpRight,
   Car,
   Users,
   Shield,
@@ -89,10 +90,14 @@ export function ServicesPreview() {
                         {t(`items.${translationKeyMap[service]}.title`)}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="flex flex-col items-center gap-4">
                       <CardDescription className="leading-relaxed text-center">
                         {t(`items.${translationKeyMap[service]}.description`)}
                       </CardDescription>
+                      <span className="inline-flex items-center gap-2 text-sm font-semibold text-accent transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+                        {tCommon('learnMore')}
+                        <ArrowUpRight className="h-4 w-4" aria-hidden />
+                      </span>
                     </CardContent>
                   </Card>
                 </Link>

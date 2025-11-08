@@ -2,12 +2,18 @@
 
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Mail, Phone, MapPin, Instagram, Twitter } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import facebookSvg from '@/components/icons/facebook.svg';
+import instagramSvg from '@/components/icons/instagram.svg';
+import linkedinSvg from '@/components/icons/linkedin.svg';
+import xSvg from '@/components/icons/icons8-x.svg';
+import snapchatSvg from '@/components/icons/snapchat.svg';
 import { submitContactForm } from '../actions/submitContactForm';
 
 export function ContactContent() {
@@ -89,22 +95,56 @@ export function ContactContent() {
                 </p>
               </div>
               <div className="flex gap-4 pt-4">
-                <a
-                  href="https://instagram.com/SMARTCROWD.SA"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  <Instagram className="h-6 w-6" />
-                </a>
-                <a
-                  href="https://twitter.com/SMARTCROWD.SA"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  <Twitter className="h-6 w-6" />
-                </a>
+                {process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK && (
+                  <a
+                    href={process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <Image src={facebookSvg} alt="Facebook" width={24} height={24} />
+                  </a>
+                )}
+                {process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM && (
+                  <a
+                    href={process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <Image src={instagramSvg} alt="Instagram" width={24} height={24} />
+                  </a>
+                )}
+                {process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN && (
+                  <a
+                    href={process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <Image src={linkedinSvg} alt="LinkedIn" width={24} height={24} />
+                  </a>
+                )}
+                {process.env.NEXT_PUBLIC_SOCIAL_TWITTER && (
+                  <a
+                    href={process.env.NEXT_PUBLIC_SOCIAL_TWITTER}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <Image src={xSvg} alt="Twitter/X" width={24} height={24} />
+                  </a>
+                )}
+                {process.env.NEXT_PUBLIC_SOCIAL_SNAPCHAT && (
+                  <a
+                    href={process.env.NEXT_PUBLIC_SOCIAL_SNAPCHAT}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <Image src={snapchatSvg} alt="Snapchat" width={24} height={24} />
+                  </a>
+                )}
               </div>
             </CardContent>
           </Card>

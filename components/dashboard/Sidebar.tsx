@@ -1,16 +1,19 @@
 'use client';
 
+import { useCallback, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { Link } from '@/lib/routing';
-import { 
-  LayoutDashboard, 
-  FolderKanban, 
+import { Link, usePathname, useRouter } from '@/lib/routing';
+import {
+  LayoutDashboard,
+  FolderKanban,
   BookOpen,
   CalendarDays,
   Globe,
-  Users
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Button } from '@/components/ui/button';
 
 interface SidebarProps {
   locale: string;
@@ -69,22 +72,50 @@ const menuItems = [
 
 export function Sidebar({ locale }: SidebarProps) {
   const isRTL = locale === 'ar';
+  const currentLocale = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = currentLocale;
+      document.documentElement.dir = currentLocale === 'ar' ? 'rtl' : 'ltr';
+    }
+  }, [currentLocale]);
+
+  const toggleLanguage = useCallback(() => {
+    const newLocale = currentLocale === 'en' ? 'ar' : 'en';
+    router.replace(pathname, { locale: newLocale });
+  }, [currentLocale, pathname, router]);
 
   return (
     <aside
       className={cn(
-        'w-64 border-r bg-muted/40 p-6',
+        'w-64 border-r bg-muted/40 p-6 flex flex-col gap-8',
         isRTL && 'border-l border-r-0'
       )}
     >
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold">SMART</h2>
-        <p className="text-sm text-muted-foreground">
-          {locale === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
-        </p>
+      <div
+        className={cn(
+          'flex items-start justify-between gap-4',
+          isRTL && 'flex-row-reverse'
+        )}
+      >
+        <div className="min-w-0">
+          <h2 className="text-2xl font-bold">SMART</h2>
+          <p className="text-sm text-muted-foreground">
+            {locale === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
+          </p>
+        </div>
+        <div className={cn('flex items-center gap-3', isRTL && 'flex-row-reverse')}>
+          <ThemeToggle />
+          <Button variant="outline" size="sm" onClick={toggleLanguage}>
+            {currentLocale === 'en' ? 'العربية' : 'English'}
+          </Button>
+        </div>
       </div>
 
-      <nav className="space-y-2">
+      <nav className="space-y-2 flex-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const title = locale === 'ar' ? item.titleAr : item.title;
