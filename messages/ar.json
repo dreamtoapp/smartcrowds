@@ -109,7 +109,13 @@
     "personalImageRequired": "الصورة الشخصية مطلوبة",
     "nameTooLong": "الاسم طويل جداً",
     "mobileTooLong": "رقم الجوال طويل جداً",
-    "emailTooLong": "البريد الإلكتروني طويل جداً"
+    "emailTooLong": "البريد الإلكتروني طويل جداً",
+    "idExpiryRequired": "تاريخ انتهاء الهوية مطلوب",
+    "ibanRequired": "رقم الآيبان مطلوب",
+    "ibanInvalid": "رقم الآيبان غير صحيح",
+    "bankNameRequired": "اسم البنك مطلوب",
+    "accountHolderRequired": "اسم مالك الحساب مطلوب",
+    "genderRequired": "الجنس مطلوب"
   },
   "placeholders": {
     "name": "أدخل اسمك",
@@ -118,7 +124,15 @@
     "idNumber": "10 أرقام",
     "age": "أدخل العمر",
     "selectNationality": "اختر الجنسية",
-    "selectJob": "اختر الوظيفة"
+    "selectJob": "اختر الوظيفة",
+    "idExpiryDate": "اختر تاريخ انتهاء الهوية",
+    "iban": "SA00XXXXXXXXXXXXXX",
+    "bankName": "اسم البنك",
+    "accountHolderName": "اسم مالك الحساب",
+    "selectGender": "اختر الجنس"
+  },
+  "footer": {
+    "licenseNotice": "نعمل تحت تصريح من هيئة السياحة والترفية - مسجلين في المركز السعودي للأعمال"
   },
   "pledge": {
     "title": "تعهد بصحة المعلومات",

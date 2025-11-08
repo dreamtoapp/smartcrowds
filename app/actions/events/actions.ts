@@ -4,6 +4,56 @@ import { prisma } from '@/lib/prisma';
 import { eventBasicSchema, eventInputSchema, registrationInputSchema, eventRequirementsJobsSchema, eventJobRequirementSchema } from '@/lib/validations/event';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
+import cloudinary from 'cloudinary';
+import { initCloudinary } from '@/app/api/images/cloudinary/config';
+import { Prisma } from '@prisma/client';
+
+const subscriberUpdateSchema = registrationInputSchema
+  .omit({ agreeToRequirements: true })
+  .extend({
+    id: z.string().min(1, 'Subscriber ID is required'),
+  });
+
+type SubscriberUpdateInput = z.infer<typeof subscriberUpdateSchema>;
+
+const revalidateSubscriberPaths = (eventId: string) => {
+  revalidatePath('/ar/events');
+  revalidatePath('/en/events');
+  revalidatePath(`/ar/events/${eventId}`);
+  revalidatePath(`/en/events/${eventId}`);
+  revalidatePath('/ar/dashboard/events');
+  revalidatePath('/en/dashboard/events');
+  revalidatePath(`/ar/dashboard/events/${eventId}/subscribers`);
+  revalidatePath(`/en/dashboard/events/${eventId}/subscribers`);
+  revalidatePath('/ar/dashboard/subscribers');
+  revalidatePath('/en/dashboard/subscribers');
+};
+
+const sanitizeIban = (iban: string) => iban.replace(/\s+/g, '').toUpperCase();
+
+const extractCloudinaryPublicId = (url?: string | null) => {
+  if (!url) return null;
+  const cleaned = url.split('?')[0];
+  const match = cleaned.match(/\/upload\/(?:v\d+\/)?(.+)/);
+  if (!match?.[1]) return null;
+  const withoutExt = match[1].replace(/\.[^/.]+$/, '');
+  return withoutExt;
+};
+
+const deleteCloudinaryAsset = async (url?: string | null) => {
+  try {
+    const publicId = extractCloudinaryPublicId(url);
+    if (!publicId) return;
+    const { error } = await initCloudinary();
+    if (error) {
+      console.error('Failed to init Cloudinary for delete:', error);
+      return;
+    }
+    await cloudinary.v2.uploader.destroy(publicId);
+  } catch (error) {
+    console.error('Failed to delete Cloudinary asset', error);
+  }
+};
 // Simplified ID validation handled inline
 
 export async function createEvent(input: unknown) {
@@ -110,8 +160,8 @@ export async function addEventJob(eventId: string, jobId: string, ratePerDay: nu
 
 export async function updateEventJob(requirementId: string, ratePerDay: number) {
   try {
-    if (!ratePerDay || ratePerDay <= 0) {
-      return { error: 'Rate per day must be a positive number' };
+    if (ratePerDay == null || Number.isNaN(ratePerDay) || ratePerDay < 0) {
+      return { error: 'Rate per day must be zero or greater' };
     }
 
     await prisma.eventJobRequirement.update({
@@ -296,9 +346,11 @@ export async function registerForEvent(input: unknown) {
     
     // Compute age from date of birth
     const dob = new Date(data.dateOfBirth);
+    const idExpiry = new Date(data.idExpiryDate);
     const now = new Date();
     const ageMs = now.getTime() - dob.getTime();
     const computedAge = Math.floor(ageMs / (365.2425 * 24 * 60 * 60 * 1000));
+    const sanitizedIban = data.iban.replace(/\s+/g, '').toUpperCase();
 
     const subscriber = await prisma.eventSubscriber.create({
       data: {
@@ -313,6 +365,11 @@ export async function registerForEvent(input: unknown) {
         dateOfBirth: dob,
         idImageUrl: data.idImageUrl || undefined,
         personalImageUrl: data.personalImageUrl || undefined,
+        idExpiryDate: idExpiry,
+        iban: sanitizedIban,
+        bankName: data.bankName,
+        accountHolderName: data.accountHolderName,
+        gender: data.gender,
       },
     });
     
@@ -440,10 +497,15 @@ export async function exportEventSubscribersToCSV(eventId: string) {
       'Mobile',
       'Email',
       'ID Number',
+      'ID Expiry Date',
       'Nationality',
       'Age',
       'Job',
       'Rate Per Day',
+      'IBAN',
+      'Bank Name',
+      'Account Holder Name',
+      'Gender',
       'ID Image URL',
       'Personal Image URL',
       'Registration Date',
@@ -455,16 +517,26 @@ export async function exportEventSubscribersToCSV(eventId: string) {
       jobRequirement?: { job?: { name?: string | null } | null; ratePerDay?: number | null } | null;
       idImageUrl?: string | null; personalImageUrl?: string | null; createdAt: Date | string;
       nationality?: { nameEn?: string | null } | null;
+      idExpiryDate?: Date | string | null;
+      iban?: string | null;
+      bankName?: string | null;
+      accountHolderName?: string | null;
+      gender?: string | null;
     };
     const rows = (subscribers as unknown as CsvSub[]).map((subscriber) => [
       subscriber.name,
       subscriber.mobile,
       subscriber.email,
       subscriber.idNumber,
+      subscriber.idExpiryDate ? new Date(subscriber.idExpiryDate).toISOString().split('T')[0] : '',
       subscriber.nationality ? subscriber.nationality.nameEn : '',
       subscriber.age.toString(),
       subscriber.jobRequirement?.job?.name || '',
       subscriber.jobRequirement?.ratePerDay?.toString() || '',
+      subscriber.iban || '',
+      subscriber.bankName || '',
+      subscriber.accountHolderName || '',
+      subscriber.gender || '',
       subscriber.idImageUrl || '',
       subscriber.personalImageUrl || '',
       new Date(subscriber.createdAt).toISOString(),
@@ -512,6 +584,152 @@ export async function listAllSubscribers() {
   } catch (error) {
     console.error('Error listing all subscribers:', error);
     return [];
+  }
+}
+
+export async function getEventSubscriber(eventId: string, subscriberId: string) {
+  try {
+    return await prisma.eventSubscriber.findFirst({
+      where: { id: subscriberId, eventId },
+      include: {
+        jobRequirement: {
+          include: { job: true },
+        },
+        nationality: true,
+      },
+    });
+  } catch (error) {
+    console.error('Error retrieving event subscriber:', error);
+    return null;
+  }
+}
+
+export async function updateEventSubscriber(input: unknown) {
+  try {
+    const data = subscriberUpdateSchema.parse(input);
+    const existing = await prisma.eventSubscriber.findUnique({
+      where: { id: data.id },
+      select: {
+        eventId: true,
+        idNumber: true,
+        idImageUrl: true,
+        personalImageUrl: true,
+      },
+    });
+
+    if (!existing) {
+      return { error: 'Subscriber not found' };
+    }
+
+    if (existing.eventId !== data.eventId) {
+      return { error: 'Subscriber does not belong to this event' };
+    }
+
+    const duplicate = await prisma.eventSubscriber.findFirst({
+      where: {
+        eventId: data.eventId,
+        idNumber: data.idNumber,
+        NOT: { id: data.id },
+      },
+      select: { id: true },
+    });
+
+    if (duplicate) {
+      return {
+        error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية',
+      };
+    }
+
+    const dob = new Date(data.dateOfBirth);
+    const idExpiry = new Date(data.idExpiryDate);
+    const now = new Date();
+    const ageYears = Math.floor((now.getTime() - dob.getTime()) / (365.2425 * 24 * 60 * 60 * 1000));
+    const sanitizedIban = sanitizeIban(data.iban);
+
+    const updatePayload: Prisma.EventSubscriberUpdateInput = {
+      name: data.name,
+      mobile: data.mobile,
+      email: data.email,
+      idNumber: data.idNumber,
+      nationality: { connect: { id: data.nationalityId } },
+      age: ageYears,
+      dateOfBirth: dob,
+      idExpiryDate: idExpiry,
+      iban: sanitizedIban,
+      bankName: data.bankName,
+      accountHolderName: data.accountHolderName,
+      gender: data.gender,
+      idImageUrl: data.idImageUrl || null,
+      personalImageUrl: data.personalImageUrl || null,
+      jobRequirement:
+        data.jobRequirementId && data.jobRequirementId.length > 0
+          ? { connect: { id: data.jobRequirementId } }
+          : { disconnect: true },
+    };
+
+    const updated = await prisma.eventSubscriber.update({
+      where: { id: data.id },
+      data: updatePayload,
+    });
+
+    if (existing.idImageUrl && existing.idImageUrl !== data.idImageUrl) {
+      await deleteCloudinaryAsset(existing.idImageUrl);
+    }
+    if (existing.personalImageUrl && existing.personalImageUrl !== data.personalImageUrl) {
+      await deleteCloudinaryAsset(existing.personalImageUrl);
+    }
+
+    revalidateSubscriberPaths(data.eventId);
+
+    return { success: true, subscriber: updated };
+  } catch (error) {
+    console.error('Error updating event subscriber:', error);
+    if (error instanceof z.ZodError) {
+      return { error: error.issues?.[0]?.message || 'Validation failed' };
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return {
+        error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية',
+      };
+    }
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to update subscriber' };
+  }
+}
+
+export async function deleteEventSubscriber(subscriberId: string) {
+  try {
+    const subscriber = await prisma.eventSubscriber.findUnique({
+      where: { id: subscriberId },
+      select: {
+        eventId: true,
+        idImageUrl: true,
+        personalImageUrl: true,
+      },
+    });
+
+    if (!subscriber) {
+      return { error: 'Subscriber not found' };
+    }
+
+    await prisma.eventSubscriber.delete({ where: { id: subscriberId } });
+
+    await Promise.all([
+      deleteCloudinaryAsset(subscriber.idImageUrl),
+      deleteCloudinaryAsset(subscriber.personalImageUrl),
+    ]);
+
+    revalidateSubscriberPaths(subscriber.eventId);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting event subscriber:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: 'Failed to delete subscriber' };
   }
 }
 

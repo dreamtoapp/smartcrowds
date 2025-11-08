@@ -5,6 +5,7 @@ import {
   getEventById as getEventByIdAction,
   getEventWithJobs as getEventWithJobsAction,
   listEventSubscribers as listEventSubscribersAction,
+  getEventSubscriber as getEventSubscriberAction,
 } from '@/app/actions/events/actions';
 import { listJobs as listJobsAction } from '@/app/actions/jobs/actions';
 import { listLocations as listLocationsAction } from '@/app/actions/locations/actions';
@@ -24,6 +25,10 @@ export async function getEventWithJobs(id: string) {
 
 export async function listEventSubscribers(eventId: string, acceptedOnly: boolean = false) {
   return listEventSubscribersAction(eventId, acceptedOnly);
+}
+
+export async function getEventSubscriber(eventId: string, subscriberId: string) {
+  return getEventSubscriberAction(eventId, subscriberId);
 }
 
 export async function listJobs() {

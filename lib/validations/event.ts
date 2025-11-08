@@ -35,7 +35,9 @@ export type EventInput = z.infer<typeof eventInputSchema>;
 // Schema for event job requirement
 export const eventJobRequirementSchema = z.object({
   jobId: z.string().min(1, 'Job is required'),
-  ratePerDay: z.number().positive('Rate per day must be a positive number'),
+  ratePerDay: z.coerce
+    .number()
+    .min(0, 'Rate per day must be at least 0'),
 });
 
 export type EventJobRequirementInput = z.infer<typeof eventJobRequirementSchema>;
@@ -49,7 +51,7 @@ export const eventRequirementsJobsSchema = z.object({
 // Schema for reading job requirement (allows null for existing data)
 export const eventJobRequirementReadSchema = z.object({
   jobId: z.string().min(1, 'Job is required'),
-  ratePerDay: z.number().positive('Rate per day must be a positive number').nullable(),
+  ratePerDay: z.number().min(0, 'Rate per day must be at least 0').nullable(),
 });
 
 export type EventRequirementsJobsInput = z.infer<typeof eventRequirementsJobsSchema>;
@@ -86,6 +88,12 @@ export function createRegistrationInputSchema(
     nameTooLong: string;
     mobileTooLong: string;
     emailTooLong: string;
+    idExpiryRequired: string;
+    ibanRequired: string;
+    ibanInvalid: string;
+    bankNameRequired: string;
+    accountHolderRequired: string;
+    genderRequired: string;
   },
   hasJobs: boolean = false
 ) {
@@ -127,6 +135,36 @@ export function createRegistrationInputSchema(
     idImageUrl: z.string().min(1, translations.idImageRequired),
     personalImageUrl: z.string().min(1, translations.personalImageRequired),
     agreeToRequirements: z.boolean().refine((v) => v === true, { message: translations.agreeRequired }),
+    idExpiryDate: z
+      .string()
+      .min(1, translations.idExpiryRequired)
+      .superRefine((val, ctx) => {
+        const date = new Date(val);
+        if (Number.isNaN(date.getTime())) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: translations.idExpiryRequired });
+          return;
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (date < today) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: translations.idExpiryRequired });
+        }
+      }),
+    iban: z
+      .string()
+      .min(1, translations.ibanRequired)
+      .superRefine((val, ctx) => {
+        const sanitized = val.replace(/\s+/g, '').toUpperCase();
+        if (!/^[A-Z]{2}[0-9A-Z]{13,32}$/.test(sanitized)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: translations.ibanInvalid });
+        }
+      }),
+    bankName: z.string().min(1, translations.bankNameRequired).max(100, translations.bankNameRequired),
+    accountHolderName: z.string().min(1, translations.accountHolderRequired).max(100, translations.accountHolderRequired),
+    gender: z
+      .string()
+      .min(1, translations.genderRequired)
+      .refine((val) => ['male', 'female'].includes(val), { message: translations.genderRequired }),
   });
 }
 
@@ -167,6 +205,36 @@ export const registrationInputSchema = z.object({
   idImageUrl: z.string().url().optional().or(z.literal('')).default(''),
   personalImageUrl: z.string().url().optional().or(z.literal('')).default(''),
   agreeToRequirements: z.boolean().refine((v) => v === true, { message: 'You must agree to the requirements' }),
+  idExpiryDate: z
+    .string()
+    .min(1, 'ID expiry date is required')
+    .superRefine((val, ctx) => {
+      const date = new Date(val);
+      if (Number.isNaN(date.getTime())) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'ID expiry date is required' });
+        return;
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (date < today) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'ID expiry date is required' });
+      }
+    }),
+  iban: z
+    .string()
+    .min(1, 'IBAN is required')
+    .superRefine((val, ctx) => {
+      const sanitized = val.replace(/\s+/g, '').toUpperCase();
+      if (!/^[A-Z]{2}[0-9A-Z]{13,32}$/.test(sanitized)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid IBAN format' });
+      }
+    }),
+  bankName: z.string().min(1, 'Bank name is required'),
+  accountHolderName: z.string().min(1, 'Account holder name is required'),
+  gender: z
+    .string()
+    .min(1, 'Gender is required')
+    .refine((val) => ['male', 'female'].includes(val), { message: 'Gender is required' }),
 });
 
 export type RegistrationInput = z.infer<typeof registrationInputSchema>;

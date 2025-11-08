@@ -173,6 +173,11 @@ model EventSubscriber {
   accepted        Boolean  @default(false)
   idImageUrl      String?
   personalImageUrl String?
+  idExpiryDate    DateTime?
+  iban            String?
+  bankName        String?
+  accountHolderName String?
+  gender          String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

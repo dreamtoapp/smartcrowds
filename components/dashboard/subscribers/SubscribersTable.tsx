@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import {
   Table,
   TableBody,
@@ -12,11 +12,28 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Eye, Check, X as XIcon, Loader2 } from 'lucide-react';
+import { Eye, Check, X as XIcon, Loader2, Trash2, PenSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { SubscriberDetailDialog } from './SubscriberDetailDialog';
 import Image from 'next/image';
-import { updateSubscriberAccepted, bulkUpdateSubscribersAccepted } from '@/app/actions/events/actions';
+import { useRouter } from 'next/navigation';
+import { Link } from '@/lib/routing';
+import {
+  updateSubscriberAccepted,
+  bulkUpdateSubscribersAccepted,
+  deleteEventSubscriber,
+} from '@/app/actions/events/actions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { showSuccessSwal } from '@/lib/utils/swal';
 
 interface SubscribersTableProps {
   subscribers: Array<{
@@ -40,13 +57,20 @@ interface SubscribersTableProps {
       nameAr: string;
       nameEn: string;
     } | null;
+    idExpiryDate?: Date | string | null;
+    iban?: string | null;
+    bankName?: string | null;
+    accountHolderName?: string | null;
+    gender?: string | null;
   }>;
   locale: string;
+  eventId: string;
 }
 
 export function SubscribersTable({
   subscribers,
   locale,
+  eventId,
 }: SubscribersTableProps) {
   const [selectedSubscriber, setSelectedSubscriber] = useState<
     SubscribersTableProps['subscribers'][0] | null
@@ -55,7 +79,14 @@ export function SubscribersTable({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<SubscribersTableProps['subscribers'][0] | null>(
+    null,
+  );
+  const [deleteLoading, startDeleteTransition] = useTransition();
+  const [deleteError, setDeleteError] = useState<string>('');
   const isArabic = locale === 'ar';
+  const router = useRouter();
 
   const allSelected = subscribers.length > 0 && selectedIds.size === subscribers.length;
   const toggleSelectAll = () => {
@@ -82,6 +113,26 @@ export function SubscribersTable({
   const handleViewMore = (subscriber: SubscribersTableProps['subscribers'][0]) => {
     setSelectedSubscriber(subscriber);
     setDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    setDeleteError('');
+    startDeleteTransition(async () => {
+      const result = await deleteEventSubscriber(deleteTarget.id);
+      if (result?.error) {
+        setDeleteError(result.error);
+        return;
+      }
+      showSuccessSwal(
+        isArabic ? 'تم حذف المشترك بنجاح' : 'Subscriber deleted successfully',
+        locale,
+      );
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+      setDeleteError('');
+      router.refresh();
+    });
   };
 
   return (
@@ -198,15 +249,36 @@ export function SubscribersTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewMore(subscriber)}
-                        className="w-full"
-                      >
-                        <Eye className={`h-4 w-4 ${isArabic ? 'ml-2' : 'mr-2'}`} />
-                        {isArabic ? 'عرض المزيد' : 'View More'}
-                      </Button>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewMore(subscriber)}
+                          className="flex-1"
+                        >
+                          <Eye className={`h-4 w-4 ${isArabic ? 'ml-2' : 'mr-2'}`} />
+                          {isArabic ? 'عرض المزيد' : 'View More'}
+                        </Button>
+                        <Link href={`/dashboard/events/${eventId}/subscribers/${subscriber.id}/edit`}>
+                          <Button variant="outline" size="sm" className="flex items-center gap-2">
+                            <PenSquare className="h-3 w-3" />
+                            {isArabic ? 'تعديل' : 'Edit'}
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex items-center gap-2"
+                          onClick={() => {
+                            setDeleteTarget(subscriber);
+                            setDeleteDialogOpen(true);
+                            setDeleteError('');
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          {isArabic ? 'حذف' : 'Delete'}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -245,6 +317,54 @@ export function SubscribersTable({
         onOpenChange={setDialogOpen}
         locale={locale}
       />
+
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteDialogOpen(false);
+            setDeleteTarget(null);
+            setDeleteError('');
+          } else if (!deleteLoading) {
+            setDeleteDialogOpen(true);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{isArabic ? 'تأكيد الحذف' : 'Confirm Deletion'}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isArabic
+                ? 'هل أنت متأكد من رغبتك في حذف هذا المشترك؟ لا يمكن التراجع عن هذه الخطوة.'
+                : 'Are you sure you want to delete this subscriber? This action cannot be undone.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {deleteError && (
+            <p className="text-sm text-destructive">
+              {deleteError}
+            </p>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteLoading}>
+              {isArabic ? 'إلغاء' : 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {isArabic ? 'جاري الحذف...' : 'Deleting...'}
+                </span>
+              ) : (
+                <>{isArabic ? 'تأكيد الحذف' : 'Delete'}</>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

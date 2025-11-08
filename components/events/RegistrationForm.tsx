@@ -92,6 +92,12 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
       nameTooLong: t('nameTooLong'),
       mobileTooLong: t('mobileTooLong'),
       emailTooLong: t('emailTooLong'),
+      idExpiryRequired: t('idExpiryRequired'),
+      ibanRequired: t('ibanRequired'),
+      ibanInvalid: t('ibanInvalid'),
+      bankNameRequired: t('bankNameRequired'),
+      accountHolderRequired: t('accountHolderRequired'),
+      genderRequired: t('genderRequired'),
     }, jobs.length > 0);
   }, [t, jobs.length]);
 
@@ -110,6 +116,11 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
       dateOfBirth: '',
       idImageUrl: '',
       personalImageUrl: '',
+      idExpiryDate: '',
+      iban: '',
+      bankName: '',
+      accountHolderName: '',
+      gender: '',
       agreeToRequirements: false as unknown as true,
     },
   });
@@ -514,6 +525,17 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
+                    {isArabic ? 'تاريخ انتهاء الهوية' : 'ID Expiry Date'} <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="date"
+                    {...register('idExpiryDate')}
+                    placeholder={tPlaceholders('idExpiryDate')}
+                  />
+                  {errors.idExpiryDate && <p className="text-sm text-red-600 mt-1">{errors.idExpiryDate.message as string}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
                     {isArabic ? 'الجنسية' : 'Nationality'} <span className="text-red-500">*</span>
                   </label>
                   <Select
@@ -537,6 +559,26 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
+                    {isArabic ? 'الجنس' : 'Gender'} <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    value={watch('gender') || ''}
+                    onValueChange={(value) => setValue('gender', value, { shouldValidate: true })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={tPlaceholders('selectGender')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">{isArabic ? 'ذكر' : 'Male'}</SelectItem>
+                      <SelectItem value="female">{isArabic ? 'أنثى' : 'Female'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.gender && (
+                    <p className="text-sm text-red-600 mt-1">{errors.gender.message as string}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
                     {isArabic ? 'تاريخ الميلاد' : 'Date of Birth'} <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -548,8 +590,47 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
+                    {isArabic ? 'الآيبان' : 'IBAN'} <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    {...register('iban')}
+                    placeholder={tPlaceholders('iban')}
+                    maxLength={34}
+                  />
+                  {errors.iban && <p className="text-sm text-red-600 mt-1">{errors.iban.message as string}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
+                    {isArabic ? 'اسم البنك' : 'Bank Name'} <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    {...register('bankName')}
+                    placeholder={tPlaceholders('bankName')}
+                    maxLength={100}
+                  />
+                  {errors.bankName && <p className="text-sm text-red-600 mt-1">{errors.bankName.message as string}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5">
+                  {isArabic ? 'اسم مالك الحساب' : 'Account Holder Name'} <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  {...register('accountHolderName')}
+                  placeholder={tPlaceholders('accountHolderName')}
+                  maxLength={100}
+                />
+                {errors.accountHolderName && (
+                  <p className="text-sm text-red-600 mt-1">{errors.accountHolderName.message as string}</p>
+                )}
+              </div>
+
               {renderImageInput(
-                isArabic ? 'صورة الهوية من توكلنا' : 'ID Image',
+                isArabic ? 'صورة الهوية من توكلنا' : 'ID Image (Tawakkalna)',
                 idImageFile,
                 idImagePreview,
                 idImageInputRef,
@@ -559,7 +640,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
               {errors.idImageUrl && <p className="text-sm text-red-600 mt-1">{errors.idImageUrl.message}</p>}
 
               {renderImageInput(
-                isArabic ? 'الصورة الشخصية  خلفية بيضاء' : 'Personal Image',
+                isArabic ? 'الصورة الشخصية  خلفية بيضاء' : 'Personal Image (White Background)',
                 personalImageFile,
                 personalImagePreview,
                 personalImageInputRef,
@@ -577,6 +658,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
               <input type="hidden" {...register('eventId')} value={eventId} />
               <input type="hidden" {...register('jobRequirementId')} value={watch('jobRequirementId') || ''} />
               <input type="hidden" {...register('nationalityId')} value={watch('nationalityId') || ''} />
+              <input type="hidden" {...register('gender')} value={watch('gender') || ''} />
               <input type="hidden" {...register('idImageUrl')} value={idImageFile ? 'uploaded' : ''} />
               <input type="hidden" {...register('personalImageUrl')} value={personalImageFile ? 'uploaded' : ''} />
             </div>

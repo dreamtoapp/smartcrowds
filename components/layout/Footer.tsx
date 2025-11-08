@@ -12,6 +12,7 @@ import snapchatSvg from '@/components/icons/snapchat.svg';
 
 export function Footer() {
   const t = useTranslations('common.nav');
+  const tFooter = useTranslations('footer');
   const locale = useLocale();
 
   const currentYear = new Date().getFullYear();
@@ -180,6 +181,7 @@ export function Footer() {
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
           <p>© {currentYear} SMART CROWD. All rights reserved.</p>
+          <p className="mt-2">{tFooter('licenseNotice')}</p>
           <p className="mt-2">
             {locale === 'ar' ? (
               <>تم التطوير بواسطة <a href="https://dreamto.app" className="underline-offset-2 hover:underline">Dream to App</a></>

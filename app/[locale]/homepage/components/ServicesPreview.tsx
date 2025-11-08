@@ -15,13 +15,22 @@ import {
 } from 'lucide-react';
 
 const serviceIcons = {
-  trafficControl: Car,
+  'traffic-control': Car,
   guidance: Users,
   security: Shield,
-  strategicPlanning: ClipboardCheck,
-  crowdManagement: TrendingUp,
-  personalProtection: UserCheck,
-};
+  'strategic-planning': ClipboardCheck,
+  'crowd-management': TrendingUp,
+  'personal-protection': UserCheck,
+} as const;
+
+const translationKeyMap = {
+  'traffic-control': 'trafficControl',
+  guidance: 'guidance',
+  security: 'security',
+  'strategic-planning': 'strategicPlanning',
+  'crowd-management': 'crowdManagement',
+  'personal-protection': 'personalProtection',
+} as const;
 
 export function ServicesPreview() {
   const t = useTranslations('services');
@@ -29,13 +38,13 @@ export function ServicesPreview() {
   const locale = useLocale();
 
   const services = [
-    'trafficControl',
+    'traffic-control',
     'guidance',
     'security',
-    'strategicPlanning',
-    'crowdManagement',
-    'personalProtection',
-  ];
+    'strategic-planning',
+    'crowd-management',
+    'personal-protection',
+  ] as const;
 
   return (
     <section className="py-24 bg-background">
@@ -57,7 +66,7 @@ export function ServicesPreview() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service, index) => {
-            const Icon = serviceIcons[service as keyof typeof serviceIcons];
+            const Icon = serviceIcons[service];
             return (
               <motion.div
                 key={service}
@@ -66,21 +75,27 @@ export function ServicesPreview() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <Card className="h-full hover:shadow-lg transition-all hover-lift border-2 hover:border-accent/50 group">
-                  <CardHeader>
-                    <div className="mb-4 inline-flex p-3 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
-                      <Icon className="h-10 w-10 text-accent" />
-                    </div>
-                    <CardTitle className="group-hover:text-accent transition-colors">
-                      {t(`items.${service}.title`)}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="leading-relaxed">
-                      {t(`items.${service}.description`)}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
+                <Link
+                  href={{ pathname: '/services', hash: service }}
+                  locale={locale}
+                  className="block h-full"
+                >
+                  <Card className="h-full hover:shadow-xl transition-all hover:-translate-y-1 border-2 hover:border-accent/50 group">
+                    <CardHeader className="text-center flex flex-col items-center gap-3">
+                      <div className="inline-flex p-3 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
+                        <Icon className="h-10 w-10 text-accent" />
+                      </div>
+                      <CardTitle className="group-hover:text-accent transition-colors">
+                        {t(`items.${translationKeyMap[service]}.title`)}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="leading-relaxed text-center">
+                        {t(`items.${translationKeyMap[service]}.description`)}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                </Link>
               </motion.div>
             );
           })}

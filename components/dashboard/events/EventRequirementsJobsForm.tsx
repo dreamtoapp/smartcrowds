@@ -55,7 +55,7 @@ export default function EventRequirementsJobsForm({
   useEffect(() => {
     const idMap = new Map<number, string>();
     initialJobs.forEach((j, index) => {
-      if (j.id && j.jobId && j.ratePerDay != null && j.ratePerDay > 0) {
+      if (j.id && j.jobId && j.ratePerDay != null && j.ratePerDay >= 0) {
         idMap.set(index, j.id);
       }
     });
@@ -77,7 +77,11 @@ export default function EventRequirementsJobsForm({
   useEffect(() => {
     const saved = new Set<number>();
     initialJobs.forEach((_, index) => {
-      if (initialJobs[index]?.jobId && initialJobs[index]?.ratePerDay != null && initialJobs[index]?.ratePerDay! > 0) {
+      if (
+        initialJobs[index]?.jobId &&
+        initialJobs[index]?.ratePerDay != null &&
+        initialJobs[index]?.ratePerDay! >= 0
+      ) {
         saved.add(index);
       }
     });
@@ -166,11 +170,17 @@ export default function EventRequirementsJobsForm({
       return;
     }
     
-    const ratePerDay = typeof job.ratePerDay === 'number' ? job.ratePerDay : parseFloat(String(job.ratePerDay || 0));
-    if (!ratePerDay || ratePerDay <= 0 || isNaN(ratePerDay)) {
+    const ratePerDay =
+      typeof job.ratePerDay === 'number'
+        ? job.ratePerDay
+        : parseFloat(String(job.ratePerDay ?? 0));
+    if (isNaN(ratePerDay) || ratePerDay < 0) {
       form.setError(`jobs.${index}.ratePerDay`, {
         type: 'manual',
-        message: locale === 'ar' ? 'المعدل اليومي يجب أن يكون رقماً أكبر من الصفر' : 'Rate per day must be a positive number',
+        message:
+          locale === 'ar'
+            ? 'المعدل اليومي يجب أن يكون رقماً أكبر أو يساوي صفر'
+            : 'Rate per day must be a number greater than or equal to 0',
       });
       return;
     }
@@ -428,7 +438,15 @@ export default function EventRequirementsJobsForm({
           )}
           {jobsArray.fields.map((field, index) => {
             const jobValue = form.watch(`jobs.${index}`);
-            const isEmpty = !jobValue?.jobId || jobValue?.ratePerDay == null || jobValue.ratePerDay <= 0;
+            const parsedRate =
+              typeof jobValue?.ratePerDay === 'number'
+                ? jobValue.ratePerDay
+                : parseFloat(String(jobValue?.ratePerDay ?? 0));
+            const isEmpty =
+              !jobValue?.jobId ||
+              jobValue?.ratePerDay == null ||
+              Number.isNaN(parsedRate) ||
+              parsedRate < 0;
             const isSaving = savingJobIndex === index;
             const isSaved = savedJobs.has(index);
             const isEditing = editingJobIndex === index;

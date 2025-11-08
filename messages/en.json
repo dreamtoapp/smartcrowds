@@ -109,7 +109,13 @@
     "personalImageRequired": "Personal image is required",
     "nameTooLong": "Name is too long",
     "mobileTooLong": "Mobile number is too long",
-    "emailTooLong": "Email is too long"
+    "emailTooLong": "Email is too long",
+    "idExpiryRequired": "ID expiry date is required",
+    "ibanRequired": "IBAN is required",
+    "ibanInvalid": "Invalid IBAN format",
+    "bankNameRequired": "Bank name is required",
+    "accountHolderRequired": "Account holder name is required",
+    "genderRequired": "Gender is required"
   },
   "placeholders": {
     "name": "Add your name",
@@ -118,7 +124,15 @@
     "idNumber": "10 digits",
     "age": "Enter age",
     "selectNationality": "Select nationality",
-    "selectJob": "Select a job"
+    "selectJob": "Select a job",
+    "idExpiryDate": "Select ID expiry date",
+    "iban": "SA00XXXXXXXXXXXXXX",
+    "bankName": "Enter bank name",
+    "accountHolderName": "Enter account holder name",
+    "selectGender": "Select gender"
+  },
+  "footer": {
+    "licenseNotice": "Operating under license from the Tourism and Entertainment Authority – Registered with the Saudi Business Center platform"
   },
   "pledge": {
     "title": "Pledge of Information Accuracy",

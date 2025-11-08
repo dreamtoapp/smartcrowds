@@ -34,6 +34,11 @@ interface SubscriberDetailDialogProps {
       nameEn: string;
     } | null;
     accepted?: boolean;
+    idExpiryDate?: Date | string | null;
+    iban?: string | null;
+    bankName?: string | null;
+    accountHolderName?: string | null;
+    gender?: string | null;
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -47,8 +52,11 @@ export function SubscriberDetailDialog({
   locale,
 }: SubscriberDetailDialogProps) {
   const isArabic = locale === 'ar';
+  const formatIban = (iban?: string | null) =>
+    iban ? iban.replace(/\s+/g, '').replace(/(.{4})/g, '$1 ').trim() : '';
 
   if (!subscriber) return null;
+  const formattedIban = formatIban(subscriber.iban);
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -128,28 +136,50 @@ export function SubscriberDetailDialog({
               </label>
               <p className="text-base">{subscriber.age}</p>
             </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-muted-foreground">
-              {isArabic ? 'الحالة' : 'Status'}
-            </label>
-            {subscriber.accepted ? (
-              <Badge variant="secondary" className="text-xs">
-                {isArabic ? 'مقبول' : 'Accepted'}
-              </Badge>
-            ) : (
-              <span className="text-xs text-muted-foreground">{isArabic ? 'غير مقبول' : 'Not accepted'}</span>
-            )}
-          </div>
-          {subscriber.dateOfBirth && (
             <div className="space-y-1">
               <label className="text-sm font-medium text-muted-foreground">
-                {isArabic ? 'تاريخ الميلاد' : 'Date of Birth'}
+                {isArabic ? 'الجنس' : 'Gender'}
               </label>
               <p className="text-base">
-                {format(new Date(subscriber.dateOfBirth), 'PPP')}
+                {subscriber.gender
+                  ? subscriber.gender === 'male'
+                    ? (isArabic ? 'ذكر' : 'Male')
+                    : (isArabic ? 'أنثى' : 'Female')
+                  : 'N/A'}
               </p>
             </div>
-          )}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-muted-foreground">
+                {isArabic ? 'الحالة' : 'Status'}
+              </label>
+              {subscriber.accepted ? (
+                <Badge variant="secondary" className="text-xs">
+                  {isArabic ? 'مقبول' : 'Accepted'}
+                </Badge>
+              ) : (
+                <span className="text-xs text-muted-foreground">{isArabic ? 'غير مقبول' : 'Not accepted'}</span>
+              )}
+            </div>
+            {subscriber.dateOfBirth && (
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">
+                  {isArabic ? 'تاريخ الميلاد' : 'Date of Birth'}
+                </label>
+                <p className="text-base">
+                  {format(new Date(subscriber.dateOfBirth), 'PPP')}
+                </p>
+              </div>
+            )}
+            {subscriber.idExpiryDate && (
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">
+                  {isArabic ? 'تاريخ انتهاء الهوية' : 'ID Expiry Date'}
+                </label>
+                <p className="text-base">
+                  {format(new Date(subscriber.idExpiryDate), 'PPP')}
+                </p>
+              </div>
+            )}
             <div className="space-y-1">
               <label className="text-sm font-medium text-muted-foreground">
                 {isArabic ? 'تاريخ التسجيل' : 'Registration Date'}
@@ -158,6 +188,30 @@ export function SubscriberDetailDialog({
                 {format(new Date(subscriber.createdAt), 'PPP')}
               </p>
             </div>
+            {formattedIban && (
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  {isArabic ? 'الآيبان' : 'IBAN'}
+                </label>
+                <p className="text-base font-mono break-words">{formattedIban}</p>
+              </div>
+            )}
+            {subscriber.bankName && (
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">
+                  {isArabic ? 'اسم البنك' : 'Bank Name'}
+                </label>
+                <p className="text-base">{subscriber.bankName}</p>
+              </div>
+            )}
+            {subscriber.accountHolderName && (
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">
+                  {isArabic ? 'اسم مالك الحساب' : 'Account Holder Name'}
+                </label>
+                <p className="text-base">{subscriber.accountHolderName}</p>
+              </div>
+            )}
           </div>
 
           {/* Job Requirement */}

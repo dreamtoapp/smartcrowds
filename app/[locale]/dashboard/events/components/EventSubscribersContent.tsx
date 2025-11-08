@@ -58,7 +58,7 @@ export async function EventSubscribersContent({ eventId, locale, acceptedOnly = 
           </CardContent>
         </Card>
       ) : (
-        <SubscribersTable subscribers={subscribers} locale={locale} />
+        <SubscribersTable subscribers={subscribers} locale={locale} eventId={eventId} />
       )}
     </section>
   );
