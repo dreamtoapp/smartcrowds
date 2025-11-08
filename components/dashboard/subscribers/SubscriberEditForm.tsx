@@ -126,7 +126,7 @@ export function SubscriberEditForm({
 
     if (jobs.length > 0) {
       return base.extend({
-        jobRequirementId: z.union([z.string().min(1, validationT('jobRequired')), z.literal('')]),
+        jobRequirementId: z.union([z.string().min(1, validationT('jobRequired')), z.literal('none')]),
       });
     }
 
@@ -137,7 +137,7 @@ export function SubscriberEditForm({
 
   const defaultValues: FormValues = {
     eventId,
-    jobRequirementId: subscriber.jobRequirementId ?? '',
+    jobRequirementId: subscriber.jobRequirementId ?? 'none',
     name: subscriber.name,
     mobile: subscriber.mobile,
     email: subscriber.email,
@@ -274,8 +274,13 @@ export function SubscriberEditForm({
           personalImageUrl = await uploadImage(personalImageFile, 'subscribers/personal-images');
         }
 
+        const { jobRequirementId: formJobRequirementId, ...restValues } = values;
+        const normalizedJobRequirementId =
+          formJobRequirementId === 'none' ? '' : formJobRequirementId;
+
         const result = await updateEventSubscriber({
-          ...values,
+          ...restValues,
+          jobRequirementId: normalizedJobRequirementId,
           id: subscriber.id,
           eventId,
           idImageUrl,
@@ -307,7 +312,7 @@ export function SubscriberEditForm({
     });
   };
 
-  const jobRequirementId = form.watch('jobRequirementId') || '';
+  const jobRequirementId = form.watch('jobRequirementId') ?? 'none';
   const nationalityId = form.watch('nationalityId') || '';
   const gender = form.watch('gender') || '';
 
@@ -478,13 +483,15 @@ export function SubscriberEditForm({
                       </label>
                       <Select
                         value={jobRequirementId}
-                        onValueChange={(value) => form.setValue('jobRequirementId', value, { shouldValidate: true })}
+                        onValueChange={(value) =>
+                          form.setValue('jobRequirementId', value, { shouldValidate: true })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder={placeholdersT('selectJob')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">{isArabic ? 'بدون وظيفة' : 'No Job'}</SelectItem>
+                          <SelectItem value="none">{isArabic ? 'بدون وظيفة' : 'No Job'}</SelectItem>
                           {jobs.map((jobRequirement) => (
                             <SelectItem key={jobRequirement.id} value={jobRequirement.id}>
                               {jobRequirement.job?.name || (isArabic ? 'وظيفة غير معروفة' : 'Unknown Job')}
