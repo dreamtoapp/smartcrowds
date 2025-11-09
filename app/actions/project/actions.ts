@@ -16,33 +16,45 @@ function generateSlug(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+async function ensureUniqueSlug(baseSlug: string) {
+  let uniqueSlug = baseSlug.trim();
+
+  if (!uniqueSlug) {
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8);
+    uniqueSlug = `project-${timestamp}-${random}`;
+  }
+
+  const normalizedBase = uniqueSlug;
+  let suffix = 1;
+
+  while (true) {
+    const existing = await prisma.project.findUnique({
+      where: { slug: uniqueSlug },
+    });
+
+    if (!existing) {
+      return uniqueSlug;
+    }
+
+    uniqueSlug = `${normalizedBase}-${suffix}`;
+    suffix += 1;
+  }
+}
+
 // Project Actions
 export async function createProject(data: Omit<ProjectInput, 'slug'> & { slug?: string }) {
   try {
     const locale = data.locale || 'en';
     
-    // Generate slug based on locale
-    let slug = (data.slug && data.slug.trim()) || generateSlug(
-      locale === 'ar' && data.nameAr 
-        ? data.nameAr 
-        : data.name || ''
+    const preferredSlugSource = data.nameAr ?? data.name ?? '';
+    const initialSlug = generateSlug(
+      preferredSlugSource.trim().length > 0
+        ? preferredSlugSource
+        : data.slug ?? ''
     );
 
-    // Ensure slug is not empty (fallback if generateSlug returned empty)
-    if (!slug || slug.trim() === '') {
-      const timestamp = Date.now().toString(36);
-      const random = Math.random().toString(36).substring(2, 8);
-      slug = `project-${timestamp}-${random}`;
-    }
-
-    // Check if slug exists
-    const existing = await prisma.project.findUnique({
-      where: { slug },
-    });
-
-    if (existing) {
-      return { error: 'A project with this slug already exists' };
-    }
+    const slug = await ensureUniqueSlug(initialSlug);
 
     // Use safeParse to handle validation errors gracefully
     const validationResult = projectSchema.safeParse({
