@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Link } from '@/lib/routing';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getProjectBySlug } from '../actions/actions';
 import { ImageGallery } from '@/components/projects/ImageGallery';
-import Image from 'next/image';
 
 interface ProjectDetailContentProps {
   locale: string;
@@ -72,6 +74,26 @@ export async function ProjectDetailContent({ locale, id }: ProjectDetailContentP
               </CardContent>
             </Card>
           )}
+
+          <div className="mt-12 text-center">
+            <Card className="inline-block max-w-3xl">
+              <CardContent className="py-8 px-6 space-y-4">
+                <h2 className="text-2xl font-semibold">
+                  {isArabic ? 'لديك مشروع مشابه؟' : 'Have a project like this?'}
+                </h2>
+                <p className="text-muted-foreground">
+                  {isArabic
+                    ? 'تواصل معنا اليوم لنتحدث عن رؤيتك وكيف يمكننا تحويلها إلى تجربة استثنائية.'
+                    : 'Let’s talk about your vision and how we can bring it to life with the same level of excellence.'}
+                </p>
+                <Button asChild>
+                  <Link href="/contact">
+                    {isArabic ? 'تواصل معنا' : 'Contact Us'}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
     </main>
