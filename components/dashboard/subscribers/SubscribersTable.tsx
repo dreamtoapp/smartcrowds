@@ -1,14 +1,7 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { useMemo, useState, useTransition } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -34,6 +27,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { showSuccessSwal } from '@/lib/utils/swal';
+import { Input } from '@/components/ui/input';
 
 interface SubscribersTableProps {
   subscribers: Array<{
@@ -85,13 +79,40 @@ export function SubscribersTable({
   );
   const [deleteLoading, startDeleteTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string>('');
+  const [filterTerm, setFilterTerm] = useState('');
   const isArabic = locale === 'ar';
   const router = useRouter();
 
-  const allSelected = subscribers.length > 0 && selectedIds.size === subscribers.length;
+  const normalizedFilter = filterTerm.trim().toLowerCase();
+
+  const filteredSubscribers = useMemo(() => {
+    if (!normalizedFilter) return subscribers;
+    return subscribers.filter((subscriber) => {
+      const haystacks = [
+        subscriber.name,
+        subscriber.mobile,
+        subscriber.idNumber,
+      ];
+      return haystacks.some((value) =>
+        value?.toLowerCase().includes(normalizedFilter),
+      );
+    });
+  }, [normalizedFilter, subscribers]);
+
+  const allSelected =
+    filteredSubscribers.length > 0 &&
+    filteredSubscribers.every((subscriber) => selectedIds.has(subscriber.id));
+
   const toggleSelectAll = () => {
-    if (allSelected) setSelectedIds(new Set());
-    else setSelectedIds(new Set(subscribers.map(s => s.id)));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allSelected) {
+        filteredSubscribers.forEach((subscriber) => next.delete(subscriber.id));
+      } else {
+        filteredSubscribers.forEach((subscriber) => next.add(subscriber.id));
+      }
+      return next;
+    });
   };
   const toggleSelectOne = (id: string) => {
     setSelectedIds(prev => {
@@ -138,6 +159,18 @@ export function SubscribersTable({
   return (
     <>
       <Card>
+        <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <Input
+            value={filterTerm}
+            onChange={(event) => setFilterTerm(event.target.value)}
+            placeholder={
+              isArabic ? 'ابحث بالاسم أو رقم الجوال أو الهوية' : 'Search by name, mobile, or ID'
+            }
+            aria-label={isArabic ? 'بحث المشتركين' : 'Search subscribers'}
+            dir={isArabic ? 'rtl' : 'ltr'}
+            className="w-full sm:max-w-xs"
+          />
+        </div>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -169,14 +202,20 @@ export function SubscribersTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {subscribers.length === 0 ? (
+              {filteredSubscribers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    {isArabic ? 'لا يوجد مشتركين' : 'No subscribers'}
+                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                    {filterTerm
+                      ? isArabic
+                        ? 'لا توجد نتائج مطابقة للبحث'
+                        : 'No subscribers match your search'
+                      : isArabic
+                        ? 'لا يوجد مشتركين'
+                        : 'No subscribers'}
                   </TableCell>
                 </TableRow>
               ) : (
-                subscribers.map((subscriber) => (
+                filteredSubscribers.map((subscriber) => (
                   <TableRow
                     key={subscriber.id}
                     className={[

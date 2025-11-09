@@ -23,7 +23,7 @@ export function Footer() {
     <footer className="border-t border-border/40 bg-muted/30 relative">
       {/* Yellow accent bar at top of footer */}
       <div className="h-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-      
+
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
@@ -102,15 +102,15 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 text-accent" />
-                <a href="mailto:info@hthkia.com" className="hover:text-accent transition-colors">
+                <Link href="mailto:info@hthkia.com" className="hover:text-accent transition-colors">
                   info@hthkia.com
-                </a>
+                </Link>
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 text-accent" />
-                <a href="tel:0580112052" className="hover:text-accent transition-colors">
+                <Link href="tel:0580112052" className="hover:text-accent transition-colors">
                   0580112052
-                </a>
+                </Link>
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5" />
@@ -121,7 +121,7 @@ export function Footer() {
             </ul>
             <div className="flex gap-4 mt-4">
               {process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK && (
-                <a
+                <Link
                   href={process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -129,10 +129,10 @@ export function Footer() {
                   className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
                 >
                   <Image src={facebookSvg} alt="Facebook" width={20} height={20} />
-                </a>
+                </Link>
               )}
               {process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM && (
-                <a
+                <Link
                   href={process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -140,10 +140,10 @@ export function Footer() {
                   className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
                 >
                   <Image src={instagramSvg} alt="Instagram" width={20} height={20} />
-                </a>
+                </Link>
               )}
               {process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN && (
-                <a
+                <Link
                   href={process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -151,10 +151,10 @@ export function Footer() {
                   className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
                 >
                   <Image src={linkedinSvg} alt="LinkedIn" width={20} height={20} />
-                </a>
+                </Link>
               )}
               {process.env.NEXT_PUBLIC_SOCIAL_TWITTER && (
-                <a
+                <Link
                   href={process.env.NEXT_PUBLIC_SOCIAL_TWITTER}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -162,10 +162,10 @@ export function Footer() {
                   className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
                 >
                   <Image src={xSvg} alt="X" width={20} height={20} />
-                </a>
+                </Link>
               )}
               {process.env.NEXT_PUBLIC_SOCIAL_SNAPCHAT && (
-                <a
+                <Link
                   href={process.env.NEXT_PUBLIC_SOCIAL_SNAPCHAT}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -173,7 +173,7 @@ export function Footer() {
                   className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform"
                 >
                   <Image src={snapchatSvg} alt="Snapchat" width={20} height={20} />
-                </a>
+                </Link>
               )}
             </div>
           </div>
@@ -181,12 +181,43 @@ export function Footer() {
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
           <p>© {currentYear} SMART CROWD. All rights reserved.</p>
-          <p className="mt-2">{tFooter('licenseNotice')}</p>
+          <div className="mt-2 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Image
+                src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762676734/gea-logo-1_ushqsy.webp"
+                alt={locale === 'ar' ? 'هيئة السياحة والترفيه' : 'Tourism and Entertainment Authority'}
+                width={150}
+                height={60}
+                sizes="(max-width: 640px) 110px, 150px"
+                className="h-auto w-full max-w-[150px] rounded bg-white p-2 shadow-sm"
+                loading="lazy"
+              />
+            </div>
+            <Image
+              src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762676272/WhatsApp_Image_2025-11-08_at_2.44.27_PM_unocwg.jpg"
+              alt={locale === 'ar' ? 'المركز السعودي للأعمال' : 'Saudi Business Center'}
+              width={160}
+              height={60}
+              sizes="(max-width: 640px) 120px, 160px"
+              className="h-auto w-full max-w-[160px] rounded bg-white p-2 shadow-sm"
+              loading="lazy"
+            />
+          </div>
           <p className="mt-2">
             {locale === 'ar' ? (
-              <>تم التطوير بواسطة <a href="https://dreamto.app" className="underline-offset-2 hover:underline">Dream to App</a></>
+              <>
+                تم التطوير بواسطة{' '}
+                <Link href="https://dreamto.app" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
+                  Dream to App
+                </Link>
+              </>
             ) : (
-              <>Website by <a href="https://dreamto.app" className="underline-offset-2 hover:underline">Dream to App</a></>
+              <>
+                Website by{' '}
+                <Link href="https://dreamto.app" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
+                  Dream to App
+                </Link>
+              </>
             )}
           </p>
         </div>
