@@ -166,7 +166,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
 
     setIdImageFile(file);
     setUploadError('');
-    
+
     // Create preview
     const previewUrl = URL.createObjectURL(file);
     setIdImagePreview(previewUrl);
@@ -191,7 +191,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
 
     setPersonalImageFile(file);
     setUploadError('');
-    
+
     // Create preview
     const previewUrl = URL.createObjectURL(file);
     setPersonalImagePreview(previewUrl);
@@ -245,7 +245,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
 
   const onSubmit = async (values: Values) => {
     setUploadError('');
-    
+
     // Validate images are selected before verifying ID
     if (!idImageFile) {
       setValue('idImageUrl', '', { shouldValidate: true });
@@ -259,22 +259,22 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
     // Verify ID number first
     setVerifyingId(true);
     const idNumber = values.idNumber;
-    
+
     try {
       const verification = await verifyIdNumber(eventId, idNumber);
-      
+
       if (!verification.valid) {
         setVerifyingId(false);
         showErrorSwal(verification.error || (isArabic ? 'رقم الهوية غير صحيح' : 'Invalid ID number'), locale);
         return;
       }
-      
+
       if (verification.isDuplicate) {
         setVerifyingId(false);
         showErrorSwal(verification.error || (isArabic ? 'رقم الهوية مسجل مسبقاً' : 'ID number already registered'), locale);
         return;
       }
-      
+
       // ID is valid and not duplicate, show pledge dialog
       setVerifyingId(false);
       setPendingFormValues(values);
@@ -283,8 +283,8 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
     } catch (error) {
       setVerifyingId(false);
       setUploadError(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : (isArabic ? 'حدث خطأ أثناء التحقق من الهوية' : 'An error occurred during ID verification')
       );
     }
@@ -292,7 +292,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
 
   const handleSaveWithPledge = () => {
     if (!pledgeAccepted || !pendingFormValues) return;
-    
+
     startTransition(async () => {
       setUploading(true);
 
@@ -306,8 +306,8 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
         } catch (error) {
           setUploading(false);
           setUploadError(
-            error instanceof Error 
-              ? error.message 
+            error instanceof Error
+              ? error.message
               : (isArabic ? 'فشل رفع صورة الهوية' : 'Failed to upload ID image')
           );
           return;
@@ -318,8 +318,8 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
         } catch (error) {
           setUploading(false);
           setUploadError(
-            error instanceof Error 
-              ? error.message 
+            error instanceof Error
+              ? error.message
               : (isArabic ? 'فشل رفع الصورة الشخصية' : 'Failed to upload personal image')
           );
           return;
@@ -331,7 +331,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
           idImageUrl,
           personalImageUrl,
         });
-        
+
         if (result.success) {
           // Clean up preview URLs
           if (idImagePreview && idImagePreview.startsWith('blob:')) {
@@ -340,7 +340,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
           if (personalImagePreview && personalImagePreview.startsWith('blob:')) {
             URL.revokeObjectURL(personalImagePreview);
           }
-          
+
           reset();
           setIdImageFile(null);
           setPersonalImageFile(null);
@@ -358,8 +358,8 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
       } catch (error) {
         setUploading(false);
         setUploadError(
-          error instanceof Error 
-            ? error.message 
+          error instanceof Error
+            ? error.message
             : (isArabic ? 'حدث خطأ أثناء التسجيل' : 'An error occurred during registration')
         );
       }
@@ -441,8 +441,8 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
         )}
         {!agreeChecked && (
           <p className="text-sm text-muted-foreground px-4">
-            {isArabic 
-              ? 'يرجى الموافقة على المتطلبات لعرض نموذج التسجيل' 
+            {isArabic
+              ? 'يرجى الموافقة على المتطلبات لعرض نموذج التسجيل'
               : 'Please agree to the requirements to view the registration form'}
           </p>
         )}
@@ -457,7 +457,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
               <h3 className="text-lg font-semibold">
                 {isArabic ? 'معلومات التسجيل' : 'Registration Information'}
               </h3>
-              
+
               {/* Job Selection */}
               {jobs.length > 0 && (
                 <div>
@@ -487,13 +487,17 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
                   )}
                 </div>
               )}
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
-                    {isArabic ? 'الاسم' : 'Name'} <span className="text-red-500">*</span>
+                    {isArabic ? 'الاسم الثلاثي بالعربي' : 'Full Name (Arabic)'} <span className="text-red-500">*</span>
                   </label>
-                  <Input {...register('name')} placeholder={tPlaceholders('name')} maxLength={100} />
+                  <Input
+                    {...register('name')}
+                    placeholder={isArabic ? 'الاسم الثلاثي بالعربي' : tPlaceholders('name')}
+                    maxLength={100}
+                  />
                   {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
