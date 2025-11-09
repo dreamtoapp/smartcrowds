@@ -16,15 +16,20 @@ export default async function ClientsGrid({ locale }: ClientsGridProps) {
 
   return (
     <section className="py-12">
-      <h2 className="text-center text-base md:text-lg font-medium text-muted-foreground mb-8">
+      <h2 className="text-center text-base md:text-lg font-medium text-muted-foreground mb-6">
         {locale === 'ar' ? 'عملاؤنا' : 'Trusted by'}
       </h2>
+      <p className="text-center text-sm text-muted-foreground/80 max-w-2xl mx-auto mb-8">
+        {locale === 'ar'
+          ? 'شركاؤنا الموثوق بهم في قطاعات مختلفة يعكسون جودة خدماتنا ودقة التنفيذ.'
+          : 'Trusted partners across diverse sectors who rely on our precision and event expertise.'}
+      </p>
       <div className="container mx-auto px-4 flex flex-col items-center">
-        <div className="w-full max-w-6xl flex flex-wrap justify-center gap-6 md:gap-8">
+        <div className="grid w-full max-w-6xl grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 justify-items-stretch">
           {clients.map((c: ClientItem) => (
             <div
               key={c.id}
-              className="flex basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/6 items-center justify-center h-24 md:h-28 max-w-[180px] mx-auto rounded-xl border border-border/50 bg-muted/30 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 opacity-90 hover:opacity-100"
+              className="group flex items-center justify-center rounded-2xl border border-border/40 bg-muted/30/80 px-4 py-6 sm:px-6 shadow-[0_8px_20px_rgba(15,23,42,0.08)] ring-1 ring-transparent transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(15,23,42,0.12)] hover:ring-accent/30 w-full"
               title={c.name}
               aria-label={c.name}
             >
@@ -33,8 +38,8 @@ export default async function ClientsGrid({ locale }: ClientsGridProps) {
                 alt={c.name}
                 width={240}
                 height={120}
-                sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 240px"
-                className="object-contain max-h-[72%] w-auto grayscale hover:grayscale-0 transition"
+                sizes="(max-width: 480px) 42vw, (max-width: 768px) 30vw, (max-width: 1280px) 20vw, 160px"
+                className="h-16 sm:h-20 w-full object-contain opacity-80 transition group-hover:opacity-100 group-hover:grayscale-0 grayscale"
               />
             </div>
           ))}

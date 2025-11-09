@@ -47,21 +47,21 @@ export function Footer() {
             </p>
         <div className="flex flex-wrap items-center justify-start gap-3">
           <Image
-            src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762676734/gea-logo-1_ushqsy.webp"
-            alt={locale === 'ar' ? 'هيئة السياحة والترفيه' : 'Tourism and Entertainment Authority'}
-            width={150}
-            height={60}
-            sizes="(max-width: 640px) 110px, 150px"
-            className="h-auto w-full max-w-[150px] rounded bg-white p-2 shadow-sm"
+            src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762717715/WhatsApp_Image_2025-11-09_at_10.38.23_PM_1_qqghbv.jpg"
+            alt={locale === 'ar' ? 'الهيئة العامة للترفيه' : 'General Entertainment Authority'}
+            width={160}
+            height={64}
+            sizes="(max-width: 640px) 140px, 160px"
+            className="h-16 w-auto max-w-[160px] rounded bg-white p-2 shadow-sm object-contain"
             loading="lazy"
           />
           <Image
             src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762676272/WhatsApp_Image_2025-11-08_at_2.44.27_PM_unocwg.jpg"
             alt={locale === 'ar' ? 'المركز السعودي للأعمال' : 'Saudi Business Center'}
             width={160}
-            height={60}
-            sizes="(max-width: 640px) 120px, 160px"
-            className="h-auto w-full max-w-[160px] rounded bg-white p-2 shadow-sm"
+            height={64}
+            sizes="(max-width: 640px) 140px, 160px"
+            className="h-16 w-auto max-w-[160px] rounded bg-white p-2 shadow-sm object-contain"
             loading="lazy"
           />
         </div>
