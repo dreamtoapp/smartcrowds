@@ -7,6 +7,7 @@ import {
   updateProject as updateProjectAction,
   addProjectImage as addProjectImageAction,
   deleteProjectImage as deleteProjectImageAction,
+  deleteProject as deleteProjectAction,
 } from '@/app/actions/project/actions';
 
 // Re-export actions for dashboard use
@@ -83,5 +84,9 @@ export async function addProjectImage(projectId: string, data: {
 
 export async function deleteProjectImage(imageId: string) {
   return deleteProjectImageAction(imageId);
+}
+
+export async function deleteProject(id: string) {
+  return deleteProjectAction(id);
 }
 

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Edit, Eye, Image as ImageIcon, Images } from 'lucide-react';
 import Image from 'next/image';
 import { getProjects } from '../actions/actions';
+import { DeleteProjectButton } from './DeleteProjectButton';
 
 interface ProjectsListContentProps {
   locale: string;
@@ -184,6 +185,13 @@ export async function ProjectsListContent({ locale, currentPage }: ProjectsListC
                           <Edit className="h-4 w-4" />
                         </Link>
                       </Button>
+                      <DeleteProjectButton
+                        projectId={project.id}
+                        projectName={
+                          project.locale === 'ar' ? project.nameAr ?? project.name : project.name ?? project.nameAr
+                        }
+                        locale={locale}
+                      />
                       {project.slug && (
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/projects/${project.slug}`} locale={project.locale || 'en'}>
