@@ -45,6 +45,26 @@ export function Footer() {
                 ? 'شركة رائدة في مجال إدارة الحشود وتنظيم الفعاليات في المملكة العربية السعودية'
                 : 'Leading crowd management and event organization company in Saudi Arabia'}
             </p>
+        <div className="flex flex-wrap items-center justify-start gap-3">
+          <Image
+            src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762676734/gea-logo-1_ushqsy.webp"
+            alt={locale === 'ar' ? 'هيئة السياحة والترفيه' : 'Tourism and Entertainment Authority'}
+            width={150}
+            height={60}
+            sizes="(max-width: 640px) 110px, 150px"
+            className="h-auto w-full max-w-[150px] rounded bg-white p-2 shadow-sm"
+            loading="lazy"
+          />
+          <Image
+            src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762676272/WhatsApp_Image_2025-11-08_at_2.44.27_PM_unocwg.jpg"
+            alt={locale === 'ar' ? 'المركز السعودي للأعمال' : 'Saudi Business Center'}
+            width={160}
+            height={60}
+            sizes="(max-width: 640px) 120px, 160px"
+            className="h-auto w-full max-w-[160px] rounded bg-white p-2 shadow-sm"
+            loading="lazy"
+          />
+        </div>
           </div>
 
           <div>
@@ -181,28 +201,6 @@ export function Footer() {
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
           <p>© {currentYear} SMART CROWD. All rights reserved.</p>
-          <div className="mt-2 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <Image
-                src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762676734/gea-logo-1_ushqsy.webp"
-                alt={locale === 'ar' ? 'هيئة السياحة والترفيه' : 'Tourism and Entertainment Authority'}
-                width={150}
-                height={60}
-                sizes="(max-width: 640px) 110px, 150px"
-                className="h-auto w-full max-w-[150px] rounded bg-white p-2 shadow-sm"
-                loading="lazy"
-              />
-            </div>
-            <Image
-              src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762676272/WhatsApp_Image_2025-11-08_at_2.44.27_PM_unocwg.jpg"
-              alt={locale === 'ar' ? 'المركز السعودي للأعمال' : 'Saudi Business Center'}
-              width={160}
-              height={60}
-              sizes="(max-width: 640px) 120px, 160px"
-              className="h-auto w-full max-w-[160px] rounded bg-white p-2 shadow-sm"
-              loading="lazy"
-            />
-          </div>
           <p className="mt-2">
             {locale === 'ar' ? (
               <>
