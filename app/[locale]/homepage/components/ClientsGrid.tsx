@@ -19,12 +19,12 @@ export default async function ClientsGrid({ locale }: ClientsGridProps) {
       <h2 className="text-center text-base md:text-lg font-medium text-muted-foreground mb-8">
         {locale === 'ar' ? 'عملاؤنا' : 'Trusted by'}
       </h2>
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-8 items-stretch">
+      <div className="container mx-auto px-4 flex flex-col items-center">
+        <div className="w-full max-w-6xl flex flex-wrap justify-center gap-6 md:gap-8">
           {clients.map((c: ClientItem) => (
             <div
               key={c.id}
-              className="flex items-center justify-center h-24 md:h-28 rounded-xl border border-border/50 bg-muted/30 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 opacity-90 hover:opacity-100"
+              className="flex basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/6 items-center justify-center h-24 md:h-28 max-w-[180px] mx-auto rounded-xl border border-border/50 bg-muted/30 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 opacity-90 hover:opacity-100"
               title={c.name}
               aria-label={c.name}
             >
@@ -43,5 +43,3 @@ export default async function ClientsGrid({ locale }: ClientsGridProps) {
     </section>
   );
 }
-
-

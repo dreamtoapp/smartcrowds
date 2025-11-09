@@ -28,6 +28,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { showSuccessSwal } from '@/lib/utils/swal';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface SubscribersTableProps {
   subscribers: Array<{
@@ -80,14 +87,57 @@ export function SubscribersTable({
   const [deleteLoading, startDeleteTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string>('');
   const [filterTerm, setFilterTerm] = useState('');
+  const [jobFilter, setJobFilter] = useState<string>('all');
+  const [pendingJobFilter, setPendingJobFilter] = useState<string>('all');
   const isArabic = locale === 'ar';
   const router = useRouter();
 
   const normalizedFilter = filterTerm.trim().toLowerCase();
 
+  const jobOptions = useMemo(() => {
+    const uniqueJobs = new Map<string, string>();
+    let hasUnassigned = false;
+
+    for (const subscriber of subscribers) {
+      const jobRequirementId = subscriber.jobRequirement?.id;
+      const jobName = subscriber.jobRequirement?.job?.name;
+
+      if (jobRequirementId && jobName) {
+        if (!uniqueJobs.has(jobRequirementId)) {
+          uniqueJobs.set(jobRequirementId, jobName);
+        }
+      } else {
+        hasUnassigned = true;
+      }
+    }
+
+    const options = Array.from(uniqueJobs.entries()).map(([requirementId, name]) => ({
+      id: requirementId,
+      name,
+    }));
+
+    if (hasUnassigned) {
+      options.unshift({ id: 'none', name: isArabic ? 'بدون وظيفة' : 'No job' });
+    }
+
+    return options;
+  }, [isArabic, subscribers]);
+
   const filteredSubscribers = useMemo(() => {
-    if (!normalizedFilter) return subscribers;
-    return subscribers.filter((subscriber) => {
+    let result = subscribers;
+
+    if (jobFilter !== 'all') {
+      result = result.filter((subscriber) => {
+        const jobRequirementId = subscriber.jobRequirement?.id;
+        if (jobFilter === 'none') {
+          return !jobRequirementId;
+        }
+        return jobRequirementId === jobFilter;
+      });
+    }
+
+    if (!normalizedFilter) return result;
+    return result.filter((subscriber) => {
       const haystacks = [
         subscriber.name,
         subscriber.mobile,
@@ -97,7 +147,8 @@ export function SubscribersTable({
         value?.toLowerCase().includes(normalizedFilter),
       );
     });
-  }, [normalizedFilter, subscribers]);
+  }, [jobFilter, normalizedFilter, subscribers]);
+  const applyButtonApplied = pendingJobFilter === jobFilter;
 
   const allSelected =
     filteredSubscribers.length > 0 &&
@@ -170,6 +221,39 @@ export function SubscribersTable({
             dir={isArabic ? 'rtl' : 'ltr'}
             className="w-full sm:max-w-xs"
           />
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <Select value={pendingJobFilter} onValueChange={setPendingJobFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue
+                  placeholder={isArabic ? 'كل الوظائف' : 'All jobs'}
+                  aria-label={isArabic ? 'تصفية حسب الوظيفة' : 'Filter by job'}
+                />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                <SelectItem value="all">
+                  {isArabic ? 'كل الوظائف' : 'All jobs'}
+                </SelectItem>
+                {jobOptions.map((job) => (
+                  <SelectItem key={job.id} value={job.id}>
+                    {job.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setJobFilter(pendingJobFilter)}
+              disabled={applyButtonApplied}
+              className="sm:w-auto"
+            >
+              {applyButtonApplied ? (
+                isArabic ? 'مطبقة' : 'Applied'
+              ) : (
+                isArabic ? 'تطبيق' : 'Apply'
+              )}
+            </Button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <Table>
