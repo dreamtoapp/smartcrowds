@@ -45,16 +45,21 @@ export function Footer() {
                 ? 'شركة رائدة في مجال إدارة الحشود وتنظيم الفعاليات في المملكة العربية السعودية'
                 : 'Leading crowd management and event organization company in Saudi Arabia'}
             </p>
-        <div className="flex flex-wrap items-center justify-start gap-3">
-          <Image
-            src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762717715/WhatsApp_Image_2025-11-09_at_10.38.23_PM_1_qqghbv.jpg"
-            alt={locale === 'ar' ? 'الهيئة العامة للترفيه' : 'General Entertainment Authority'}
-            width={160}
-            height={64}
-            sizes="(max-width: 640px) 140px, 160px"
-            className="h-16 w-auto max-w-[160px] rounded bg-white p-2 shadow-sm object-contain"
-            loading="lazy"
-          />
+        <div className="flex flex-wrap items-start justify-start gap-4">
+          <div className="flex flex-col items-start gap-1">
+            <Image
+              src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762717715/WhatsApp_Image_2025-11-09_at_10.38.23_PM_1_qqghbv.jpg"
+              alt={locale === 'ar' ? 'الهيئة العامة للترفيه' : 'General Entertainment Authority'}
+              width={160}
+              height={64}
+              sizes="(max-width: 640px) 140px, 160px"
+              className="h-16 w-auto max-w-[160px] rounded bg-white p-2 shadow-sm object-contain"
+              loading="lazy"
+            />
+            <p className="text-xs text-muted-foreground">
+              {locale === 'ar' ? 'ترخيص رقم: 2411130104' : 'License No. 2411130104'}
+            </p>
+          </div>
           <Image
             src="https://res.cloudinary.com/dhjy2k0fu/image/upload/v1762676272/WhatsApp_Image_2025-11-08_at_2.44.27_PM_unocwg.jpg"
             alt={locale === 'ar' ? 'المركز السعودي للأعمال' : 'Saudi Business Center'}
