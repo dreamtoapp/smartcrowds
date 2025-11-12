@@ -5,6 +5,7 @@ import {
   getPostById as getPostByIdAction,
   createPost as createPostAction,
   updatePost as updatePostAction,
+  deletePost as deletePostAction,
 } from '@/app/actions/blog/actions';
 
 // Re-export actions for dashboard use
@@ -65,5 +66,9 @@ export async function updatePost(
   }
 ) {
   return updatePostAction(id, data);
+}
+
+export async function deletePost(id: string) {
+  return deletePostAction(id);
 }
 

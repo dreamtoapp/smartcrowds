@@ -5,6 +5,7 @@ import { Plus, Edit, Eye, Clock, User, Calendar, Image as ImageIcon } from 'luci
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { getPosts } from '../actions/actions';
+import { DeleteBlogPostButton } from './DeleteBlogPostButton';
 
 type DashboardPost = {
   id: string;
@@ -206,6 +207,11 @@ export async function BlogListContent({ locale, currentPage }: BlogListContentPr
                             </Link>
                           </Button>
                         )}
+                        <DeleteBlogPostButton
+                          postId={post.id}
+                          postTitle={post.locale === 'ar' && post.titleAr ? post.titleAr : post.title || 'Untitled'}
+                          locale={locale}
+                        />
                       </div>
                     </CardContent>
                   </Card>
