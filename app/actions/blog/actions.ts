@@ -31,10 +31,14 @@ export async function createPost(data: Omit<PostInput, 'slug'> & { slug?: string
       return { error: 'A post with this slug already exists' };
     }
 
-    const validated = postSchema.parse({
+    const normalizedData = {
       ...data,
+      titleAr: data.titleAr?.trim() ? data.titleAr : data.title || '',
+      contentAr: data.contentAr?.trim() ? data.contentAr : data.content || '',
       slug,
-    });
+    };
+
+    const validated = postSchema.parse(normalizedData);
 
     const content = validated.contentAr || validated.content || '';
     const readingTime = calculateReadingTime(content);
