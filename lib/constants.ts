@@ -1,7 +1,7 @@
 export const COMPANY_INFO = {
   name: 'SMART CROWD',
   nameAr: 'سمارت إدارة الحشود',
-  email: 'info@hthkia.com',
+  email: 'Info@smartcrowdme.com',
   phone: '0580112052',
   address: 'Al-Rusaifah, Third Ring Road – Al-Sharif Yahya Tower, Makkah',
   website: 'https://hthkia.com',

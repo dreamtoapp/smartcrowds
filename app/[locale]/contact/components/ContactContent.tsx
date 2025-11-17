@@ -72,10 +72,10 @@ export function ContactContent() {
               <div className="flex items-center gap-4">
                 <Mail className="h-5 w-5 text-primary" />
                 <a
-                  href="mailto:info@hthkia.com"
+                  href="mailto:Info@smartcrowdme.com"
                   className="text-muted-foreground hover:text-primary"
                 >
-                  info@hthkia.com
+                  Info@smartcrowdme.com
                 </a>
               </div>
               <div className="flex items-center gap-4">

@@ -84,7 +84,7 @@ export default async function LocaleLayout({
       '@type': 'ContactPoint',
       telephone: '+966-58-011-2052',
       contactType: 'customer service',
-      email: 'info@hthkia.com',
+      email: 'Info@smartcrowdme.com',
       areaServed: 'SA',
       availableLanguage: ['Arabic', 'English'],
     },

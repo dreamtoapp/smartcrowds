@@ -102,7 +102,7 @@ Each section includes challenges, solutions, and Smart’s operational role as e
 من الدخول الى الخروج احنا قدها — From entry to exit we’ve got it handled.  
 
 **Contact Us:**  
-E: info@hthkia.com  
+E: Info@smartcrowdme.com  
 🌐 hthkia.com  
 📞 0580112052  
 📍 Al-Rusaifah, Third Ring Road – Al-Sharif Yahya Tower, Makkah  
