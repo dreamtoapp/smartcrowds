@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/lib/routing';
 import type { Metadata } from 'next';
 import { PublicLayoutWrapper } from '@/components/layout/PublicLayoutWrapper';
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 
 export async function generateMetadata({
   params,
@@ -104,6 +105,7 @@ export default async function LocaleLayout({
 
   return (
     <>
+      <GoogleAnalytics />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
