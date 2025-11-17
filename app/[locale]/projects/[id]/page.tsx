@@ -8,7 +8,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string; id: string }>;
 }): Promise<Metadata> {
   const { locale, id } = await params;
-  return generateProjectDetailMetadata(locale, id);
+  // Decode URL-encoded slug (handles Arabic characters)
+  // Note: parameter is named 'id' but it's actually a slug
+  const decodedSlug = decodeURIComponent(id);
+  return generateProjectDetailMetadata(locale, decodedSlug);
 }
 
 export default async function ProjectDetailPage({
@@ -17,6 +20,9 @@ export default async function ProjectDetailPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
+  // Decode URL-encoded slug (handles Arabic characters)
+  // Note: parameter is named 'id' but it's actually a slug
+  const decodedSlug = decodeURIComponent(id);
 
-  return <ProjectDetailContent locale={locale} id={id} />;
+  return <ProjectDetailContent locale={locale} id={decodedSlug} />;
 }
