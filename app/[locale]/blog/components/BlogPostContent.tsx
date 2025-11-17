@@ -6,6 +6,8 @@ import { Calendar, User } from 'lucide-react';
 import Image from 'next/image';
 import { calculateReadingTime } from '@/lib/utils/blog';
 import { Link } from '@/lib/routing';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface BlogPostContentProps {
   locale: string;
@@ -97,6 +99,26 @@ export async function BlogPostContent({ locale, slug }: BlogPostContentProps) {
               className="prose prose-lg dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: content }}
             />
+
+            <div className="mt-12 text-center">
+              <Card className="inline-block max-w-3xl">
+                <CardContent className="py-8 px-6 space-y-4">
+                  <h2 className="text-2xl font-semibold">
+                    {isArabic ? 'تريد معرفة المزيد؟' : 'Want to learn more?'}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {isArabic
+                      ? 'لديك أسئلة أو تريد التواصل معنا؟ اتصل بنا اليوم.'
+                      : 'Have questions or want to get in touch? Contact us today.'}
+                  </p>
+                  <Button asChild>
+                    <Link href="/contact">
+                      {isArabic ? 'اتصل بنا' : 'Contact Us'}
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
 
             {related.length > 0 && (
               <section className="mt-16 pt-8 border-t">
