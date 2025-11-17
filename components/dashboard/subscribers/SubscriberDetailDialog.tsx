@@ -39,6 +39,7 @@ interface SubscriberDetailDialogProps {
     bankName?: string | null;
     accountHolderName?: string | null;
     gender?: string | null;
+    city?: string | null;
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -105,6 +106,12 @@ export function SubscriberDetailDialog({
                 {isArabic ? 'الجوال' : 'Mobile'}
               </label>
               <p className="text-base">{subscriber.mobile}</p>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-muted-foreground">
+                {isArabic ? 'المدينة' : 'City'}
+              </label>
+              <p className="text-base">{subscriber.city || 'N/A'}</p>
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-muted-foreground">

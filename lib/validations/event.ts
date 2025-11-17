@@ -94,6 +94,9 @@ export function createRegistrationInputSchema(
     bankNameRequired: string;
     accountHolderRequired: string;
     genderRequired: string;
+    cityRequired: string;
+    cityTooShort: string;
+    cityTooLong: string;
   },
   hasJobs: boolean = false
 ) {
@@ -165,6 +168,7 @@ export function createRegistrationInputSchema(
       .string()
       .min(1, translations.genderRequired)
       .refine((val) => ['male', 'female'].includes(val), { message: translations.genderRequired }),
+    city: z.string().min(2, translations.cityTooShort).max(100, translations.cityTooLong),
   });
 }
 
@@ -235,6 +239,7 @@ export const registrationInputSchema = z.object({
     .string()
     .min(1, 'Gender is required')
     .refine((val) => ['male', 'female'].includes(val), { message: 'Gender is required' }),
+  city: z.string().min(2, 'City name is too short').max(100, 'City name is too long'),
 });
 
 export type RegistrationInput = z.infer<typeof registrationInputSchema>;

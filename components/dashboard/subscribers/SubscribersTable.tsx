@@ -63,6 +63,7 @@ interface SubscribersTableProps {
     bankName?: string | null;
     accountHolderName?: string | null;
     gender?: string | null;
+    city?: string | null;
   }>;
   locale: string;
   eventId: string;
@@ -142,6 +143,7 @@ export function SubscribersTable({
         subscriber.name,
         subscriber.mobile,
         subscriber.idNumber,
+        subscriber.city,
       ];
       return haystacks.some((value) =>
         value?.toLowerCase().includes(normalizedFilter),
@@ -272,6 +274,9 @@ export function SubscribersTable({
                   {isArabic ? 'الجوال' : 'Mobile'}
                 </TableHead>
                 <TableHead className={isArabic ? 'text-right' : 'text-left'}>
+                  {isArabic ? 'المدينة' : 'City'}
+                </TableHead>
+                <TableHead className={isArabic ? 'text-right' : 'text-left'}>
                   {isArabic ? 'الجنسية' : 'Nationality'}
                 </TableHead>
                 <TableHead className={isArabic ? 'text-right' : 'text-left'}>
@@ -288,7 +293,7 @@ export function SubscribersTable({
             <TableBody>
               {filteredSubscribers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
                     {filterTerm
                       ? isArabic
                         ? 'لا توجد نتائج مطابقة للبحث'
@@ -332,6 +337,7 @@ export function SubscribersTable({
                     </TableCell>
                     <TableCell className="font-medium">{subscriber.name}</TableCell>
                     <TableCell>{subscriber.mobile}</TableCell>
+                    <TableCell>{subscriber.city || 'N/A'}</TableCell>
                     <TableCell>
                       {subscriber.nationality
                         ? isArabic

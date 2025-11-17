@@ -45,6 +45,7 @@ interface SubscriberEditFormProps {
     accountHolderName: string | null;
     gender: string | null;
     idExpiryDate: string | null;
+    city: string | null;
   };
   jobs: Array<{
     id: string;
@@ -120,6 +121,9 @@ export function SubscriberEditForm({
         bankNameRequired: validationT('bankNameRequired'),
         accountHolderRequired: validationT('accountHolderRequired'),
         genderRequired: validationT('genderRequired'),
+        cityRequired: isArabic ? 'المدينة مطلوبة' : 'City is required',
+        cityTooShort: isArabic ? 'اسم المدينة قصير جداً' : 'City name is too short',
+        cityTooLong: isArabic ? 'اسم المدينة طويل جداً' : 'City name is too long',
       },
       jobs.length > 0,
     ).omit({ agreeToRequirements: true });
@@ -151,6 +155,7 @@ export function SubscriberEditForm({
     bankName: subscriber.bankName ?? '',
     accountHolderName: subscriber.accountHolderName ?? '',
     gender: subscriber.gender ?? '',
+    city: subscriber.city ?? '',
   };
 
   const form = useForm<FormValues>({
@@ -406,6 +411,17 @@ export function SubscriberEditForm({
                     {form.formState.errors.mobile && (
                       <p className="text-sm text-red-600 mt-1">
                         {form.formState.errors.mobile.message as string}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">
+                      {isArabic ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
+                    </label>
+                    <Input {...form.register('city')} placeholder={isArabic ? 'المدينة' : 'City'} maxLength={100} />
+                    {form.formState.errors.city && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {form.formState.errors.city.message as string}
                       </p>
                     )}
                   </div>

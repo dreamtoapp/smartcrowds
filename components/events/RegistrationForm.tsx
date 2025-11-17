@@ -98,6 +98,9 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
       bankNameRequired: t('bankNameRequired'),
       accountHolderRequired: t('accountHolderRequired'),
       genderRequired: t('genderRequired'),
+      cityRequired: isArabic ? 'المدينة مطلوبة' : 'City is required',
+      cityTooShort: isArabic ? 'اسم المدينة قصير جداً' : 'City name is too short',
+      cityTooLong: isArabic ? 'اسم المدينة طويل جداً' : 'City name is too long',
     }, jobs.length > 0);
   }, [t, jobs.length]);
 
@@ -121,6 +124,7 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
       bankName: '',
       accountHolderName: '',
       gender: '',
+      city: '',
       agreeToRequirements: false as unknown as true,
     },
   });
@@ -517,6 +521,16 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
                   <Input type="email" {...register('email')} placeholder={tPlaceholders('email')} maxLength={255} />
                   {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>}
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
+                    {isArabic ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
+                  </label>
+                  <Input {...register('city')} placeholder={isArabic ? 'المدينة' : 'City'} maxLength={100} />
+                  {errors.city && <p className="text-sm text-red-600 mt-1">{errors.city.message}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
                     {isArabic ? 'رقم الهوية' : 'ID Number'} <span className="text-red-500">*</span>

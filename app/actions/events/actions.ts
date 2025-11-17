@@ -370,6 +370,7 @@ export async function registerForEvent(input: unknown) {
         bankName: data.bankName,
         accountHolderName: data.accountHolderName,
         gender: data.gender,
+        city: data.city || undefined,
       },
     });
     
@@ -659,6 +660,7 @@ export async function updateEventSubscriber(input: unknown) {
       bankName: data.bankName,
       accountHolderName: data.accountHolderName,
       gender: data.gender,
+      city: data.city || null,
       idImageUrl: data.idImageUrl || null,
       personalImageUrl: data.personalImageUrl || null,
       jobRequirement:
