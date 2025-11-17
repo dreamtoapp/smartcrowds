@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const projectSchema = z.object({
   name: z.string().max(200, 'Name is too long').optional().or(z.literal('')),
   nameAr: z.string().max(200, 'Name is too long').optional().or(z.literal('')),
-  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
+  slug: z.string().min(1, 'Slug is required').regex(/^[\u0600-\u06FF\u08A0-\u08FFa-z0-9-]+$/, 'Slug must contain only Arabic characters, lowercase letters, numbers, and hyphens'),
   description: z.string().max(2000, 'Description is too long').optional(),
   descriptionAr: z.string().max(2000, 'Description is too long').optional(),
   featuredImage: z.preprocess(

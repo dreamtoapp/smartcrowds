@@ -4,17 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { postSchema, type PostInput } from '@/lib/validations/blog';
 import { revalidatePath } from 'next/cache';
 import { calculateReadingTime } from '@/lib/utils/blog';
-
-// Helper to generate slug from title
-function generateSlug(text: string): string {
-  if (!text) return '';
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
+import { generateSlug } from '@/lib/utils/slug';
 
 // Post Actions
 export async function createPost(data: Omit<PostInput, 'slug'> & { slug?: string }) {
@@ -104,10 +94,13 @@ export async function updatePost(id: string, data: Partial<PostInput> & { slug?:
       return { error: 'Post not found' };
     }
 
-    const slug = data.slug || existing.slug;
+    // Always regenerate slug from current title data (force update on every save)
+    // Ignore provided slug and always regenerate to ensure it matches current title
+    const titleSource = data.titleAr || data.title || existing.titleAr || existing.title || '';
+    const slug = generateSlug(titleSource);
 
     // Check if slug exists on another post
-    if (data.slug && data.slug !== existing.slug) {
+    if (slug !== existing.slug) {
       const slugExists = await prisma.post.findFirst({
         where: {
           slug,
@@ -141,7 +134,8 @@ export async function updatePost(id: string, data: Partial<PostInput> & { slug?:
     const updateData: Record<string, unknown> = {};
     if (data.title !== undefined) updateData.title = data.title;
     if (data.titleAr !== undefined) updateData.titleAr = data.titleAr;
-    if (data.slug !== undefined) updateData.slug = slug;
+    // Always update slug to ensure it matches current title (force regeneration)
+    updateData.slug = slug;
     if (data.content !== undefined) updateData.content = data.content;
     if (data.contentAr !== undefined) updateData.contentAr = data.contentAr;
     if (data.excerpt !== undefined) updateData.excerpt = data.excerpt;

@@ -4,17 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { projectSchema, projectImageSchema, type ProjectInput, type ProjectImageInput } from '@/lib/validations/project';
 import { revalidatePath } from 'next/cache';
 import { ZodError, z } from 'zod';
-
-// Helper to generate slug from name
-function generateSlug(text: string): string {
-  if (!text) return '';
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
+import { generateSlug } from '@/lib/utils/slug';
 
 async function ensureUniqueSlug(baseSlug: string) {
   let uniqueSlug = baseSlug.trim();
@@ -127,9 +117,14 @@ export async function updateProject(id: string, data: Partial<ProjectInput> & { 
       return { error: 'Project not found' };
     }
 
-    const slug = data.slug || existing.slug;
+    // Always regenerate slug from current name data (force update on every save)
+    // Ignore provided slug and always regenerate to ensure it matches current name
+    const nameSource = data.nameAr ?? data.name ?? existing.nameAr ?? existing.name ?? '';
+    const initialSlug = generateSlug(nameSource);
+    const slug = await ensureUniqueSlug(initialSlug);
 
-    if (data.slug && data.slug !== existing.slug) {
+    // Check if slug exists on another project (only if it changed)
+    if (slug !== existing.slug) {
       const slugExists = await prisma.project.findFirst({
         where: {
           slug,
@@ -154,7 +149,8 @@ export async function updateProject(id: string, data: Partial<ProjectInput> & { 
     if (data.nameAr !== undefined) {
       updateData.nameAr = data.nameAr && data.nameAr.trim() ? data.nameAr.trim() : null;
     }
-    if (data.slug !== undefined) updateData.slug = slug;
+    // Always update slug to ensure it matches current name (force regeneration)
+    updateData.slug = slug;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.descriptionAr !== undefined) updateData.descriptionAr = data.descriptionAr;
     if (data.featuredImage !== undefined) updateData.featuredImage = data.featuredImage || null;

@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const postSchema = z.object({
   title: z.string().optional(),
   titleAr: z.string().min(1, 'Arabic title is required').max(200, 'Title is too long'),
-  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
+  slug: z.string().min(1, 'Slug is required').regex(/^[\u0600-\u06FF\u08A0-\u08FFa-z0-9-]+$/, 'Slug must contain only Arabic characters, lowercase letters, numbers, and hyphens'),
   content: z.string().optional(),
   contentAr: z.string().min(1, 'Arabic content is required'),
   excerpt: z.string().max(500, 'Excerpt is too long').optional(),
@@ -21,7 +21,7 @@ export const postSchema = z.object({
 export const categorySchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
   nameAr: z.string().optional(),
-  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
+  slug: z.string().min(1, 'Slug is required').regex(/^[\u0600-\u06FF\u08A0-\u08FFa-z0-9-]+$/, 'Slug must contain only Arabic characters, lowercase letters, numbers, and hyphens'),
   description: z.string().max(500, 'Description is too long').optional(),
   descriptionAr: z.string().max(500, 'Description is too long').optional(),
   locale: z.enum(['en', 'ar']).default('en'),
@@ -30,7 +30,7 @@ export const categorySchema = z.object({
 export const tagSchema = z.object({
   name: z.string().min(1, 'Name is required').max(50, 'Name is too long'),
   nameAr: z.string().optional(),
-  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
+  slug: z.string().min(1, 'Slug is required').regex(/^[\u0600-\u06FF\u08A0-\u08FFa-z0-9-]+$/, 'Slug must contain only Arabic characters, lowercase letters, numbers, and hyphens'),
 });
 
 export type PostInput = z.infer<typeof postSchema>;
