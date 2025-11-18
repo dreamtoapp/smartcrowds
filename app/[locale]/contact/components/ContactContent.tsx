@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useLocale } from 'next-intl';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,39 +14,41 @@ import instagramSvg from '@/components/icons/instagram.svg';
 import linkedinSvg from '@/components/icons/linkedin.svg';
 import xSvg from '@/components/icons/icons8-x.svg';
 import snapchatSvg from '@/components/icons/snapchat.svg';
-import { submitContactForm } from '../actions/submitContactForm';
+import { showSuccessSwal, showErrorSwal } from '@/lib/utils/swal';
+import { createContactMessage } from '@/app/actions/contact/actions';
 
 export function ContactContent() {
   const locale = useLocale();
+  const [isPending, startTransition] = useTransition();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     message: '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    try {
-      const result = await submitContactForm({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone || undefined,
-        message: formData.message,
-      });
-
-      if (result.success) {
-        alert(locale === 'ar' ? 'تم إرسال الرسالة بنجاح' : 'Message sent successfully');
+    startTransition(async () => {
+      try {
+        await createContactMessage(formData);
+        showSuccessSwal(
+          locale === 'ar'
+            ? 'تم إرسال رسالتك بنجاح. سنتواصل معك قريباً.'
+            : 'Your message has been sent successfully. We will contact you soon.',
+          locale
+        );
         setFormData({ name: '', email: '', phone: '', message: '' });
+      } catch (error) {
+        showErrorSwal(
+          locale === 'ar'
+            ? 'حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.'
+            : 'An error occurred while sending your message. Please try again.',
+          locale
+        );
       }
-    } catch (error) {
-      alert(locale === 'ar' ? 'حدث خطأ أثناء إرسال الرسالة' : 'An error occurred while sending the message');
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   return (
@@ -211,8 +213,8 @@ export function ContactContent() {
                     rows={5}
                   />
                 </div>
-                <Button type="submit" disabled={isSubmitting} className="w-full">
-                  {isSubmitting
+                <Button type="submit" className="w-full" disabled={isPending}>
+                  {isPending
                     ? locale === 'ar'
                       ? 'جاري الإرسال...'
                       : 'Sending...'

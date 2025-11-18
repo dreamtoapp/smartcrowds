@@ -10,6 +10,7 @@ import {
   CalendarDays,
   Globe,
   Users,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -67,6 +68,12 @@ const menuItems = [
     titleAr: 'الجنسيات',
     icon: Globe,
     href: 'dashboard/nationalities',
+  },
+  {
+    title: 'Contact Messages',
+    titleAr: 'رسائل التواصل',
+    icon: Mail,
+    href: 'dashboard/contact',
   },
 ];
 
