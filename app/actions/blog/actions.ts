@@ -216,9 +216,9 @@ export async function getPosts(options?: {
 
     const where: { locale?: string; published?: boolean } = {};
 
-    // Only filter by locale if explicitly provided
-    if (locale !== undefined && locale !== null) {
-      where.locale = locale;
+    // Only filter by locale if explicitly provided and is a valid non-empty string
+    if (locale !== undefined && locale !== null && locale.trim() !== '') {
+      where.locale = locale.trim().toLowerCase();
     }
 
     if (published !== undefined) {

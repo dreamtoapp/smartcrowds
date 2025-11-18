@@ -13,7 +13,7 @@ interface ProjectsListContentProps {
 
 export async function ProjectsListContent({ locale, currentPage }: ProjectsListContentProps) {
   const result = await getProjects({
-    locale: undefined, // Show all projects
+    locale: locale.toLowerCase().trim(), // Filter projects by current route locale (normalized)
     published: undefined,
     page: currentPage,
     limit: 20,
@@ -106,11 +106,10 @@ export async function ProjectsListContent({ locale, currentPage }: ProjectsListC
                         </div>
                         {/* Locale Badge */}
                         <span
-                          className={`px-2.5 py-1 text-xs font-bold rounded backdrop-blur-sm border ${
-                            project.locale === 'ar'
+                          className={`px-2.5 py-1 text-xs font-bold rounded backdrop-blur-sm border ${project.locale === 'ar'
                               ? 'bg-blue-600/90 text-white border-blue-700'
                               : 'bg-purple-600/90 text-white border-purple-700'
-                          }`}
+                            }`}
                         >
                           {project.locale === 'ar' ? 'العربية' : 'English'}
                         </span>
@@ -133,11 +132,10 @@ export async function ProjectsListContent({ locale, currentPage }: ProjectsListC
                           )}
                         </div>
                         <span
-                          className={`px-2.5 py-1 text-xs font-bold rounded backdrop-blur-sm border ${
-                            project.locale === 'ar'
+                          className={`px-2.5 py-1 text-xs font-bold rounded backdrop-blur-sm border ${project.locale === 'ar'
                               ? 'bg-blue-600/90 text-white border-blue-700'
                               : 'bg-purple-600/90 text-white border-purple-700'
-                          }`}
+                            }`}
                         >
                           {project.locale === 'ar' ? 'العربية' : 'English'}
                         </span>

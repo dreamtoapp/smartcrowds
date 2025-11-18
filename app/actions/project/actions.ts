@@ -36,7 +36,7 @@ async function ensureUniqueSlug(baseSlug: string) {
 export async function createProject(data: Omit<ProjectInput, 'slug'> & { slug?: string }) {
   try {
     const locale = data.locale || 'en';
-    
+
     const preferredSlugSource = data.nameAr ?? data.name ?? '';
     const initialSlug = generateSlug(
       preferredSlugSource.trim().length > 0
@@ -60,10 +60,10 @@ export async function createProject(data: Omit<ProjectInput, 'slug'> & { slug?: 
     const validated = validationResult.data;
 
     // Ensure name is never empty - use nameAr as fallback if name is empty
-    const finalName = (validated.name && validated.name.trim()) 
-      ? validated.name.trim() 
-      : (validated.nameAr && validated.nameAr.trim() 
-        ? validated.nameAr.trim() 
+    const finalName = (validated.name && validated.name.trim())
+      ? validated.name.trim()
+      : (validated.nameAr && validated.nameAr.trim()
+        ? validated.nameAr.trim()
         : 'Untitled');
 
     const project = await prisma.project.create({
@@ -214,8 +214,9 @@ export async function getProjects(options?: {
     const limit = options?.limit || 20;
 
     const where: { locale?: string; published?: boolean; featured?: boolean } = {};
-    if (options?.locale !== undefined) {
-      where.locale = options.locale;
+    // Only filter by locale if explicitly provided and is a valid non-empty string
+    if (options?.locale !== undefined && options.locale !== null && options.locale.trim() !== '') {
+      where.locale = options.locale.trim().toLowerCase();
     }
     if (options?.published !== undefined) {
       where.published = options.published;
