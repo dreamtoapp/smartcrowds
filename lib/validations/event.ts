@@ -4,8 +4,10 @@ import { z } from 'zod';
 // Schema for basic event creation (without requirements and jobs)
 export const eventBasicSchema = z.object({
   title: z.string().min(2, 'Title is too short'),
+  titleAr: z.string().min(2, 'Arabic title is required'),
   date: z.string().min(1, 'Date is required'),
   description: z.string().min(2, 'Description is too short'),
+  descriptionAr: z.string().min(2, 'Arabic description is required'),
   imageUrl: z.string().url().optional().or(z.literal('')).default(''),
   locationId: z.string().min(1, 'Location is required'),
 });

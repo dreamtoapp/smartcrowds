@@ -15,6 +15,7 @@ interface EventsListContentProps {
 type DashboardEvent = {
   id: string;
   title: string;
+  titleAr?: string | null;
   date: string | Date;
   imageUrl?: string | null;
   published?: boolean | null;
@@ -46,24 +47,28 @@ export async function EventsListContent({ locale }: EventsListContentProps) {
           const subscribersCount = event.subscribers?.length || 0;
           const acceptedCount = (event.subscribers || []).filter((s: { accepted?: boolean | null }) => !!s.accepted).length;
           const isPublished = event.published ?? false;
-          
+
           return (
             <Card
               key={event.id}
-              className={`overflow-hidden flex flex-col transition-shadow ${
-                isPublished
-                  ? 'border-l-4 border-green-500 hover:shadow-green-200/20'
-                  : 'border-l-4 border-red-500 hover:shadow-red-200/20'
-              }`}
+              className={`overflow-hidden flex flex-col transition-shadow ${isPublished
+                ? 'border-l-4 border-green-500 hover:shadow-green-200/20'
+                : 'border-l-4 border-red-500 hover:shadow-red-200/20'
+                }`}
             >
               <div className="relative h-40 bg-muted">
                 {event.imageUrl ? (
-                  <Image src={event.imageUrl} alt={event.title} fill className="object-cover" />
+                  <Image
+                    src={event.imageUrl}
+                    alt={isArabic && event.titleAr ? event.titleAr : event.title}
+                    fill
+                    className="object-cover"
+                  />
                 ) : null}
               </div>
               <CardContent className="pt-4 flex-1 flex flex-col">
                 <div className="font-semibold mb-1 flex items-center justify-between">
-                  <span>{event.title}</span>
+                  <span>{isArabic && event.titleAr ? event.titleAr : event.title}</span>
                   <Link href={`/events/${event.id}`} title={isArabic ? 'عرض' : 'View'}>
                     <Eye className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
                   </Link>
@@ -96,7 +101,7 @@ export async function EventsListContent({ locale }: EventsListContentProps) {
                     </Badge>
                   )}
                 </div>
-                
+
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
                   {event.completed && (
                     <Badge variant="default" className="bg-green-600">
@@ -116,11 +121,18 @@ export async function EventsListContent({ locale }: EventsListContentProps) {
                 </div>
 
                 <div className="mt-auto space-y-2">
-                  <Link href={`/dashboard/events/${event.id}/jobs`} className="block">
-                    <Button variant="default" size="sm" className="w-full">
-                      {isArabic ? 'إدارة المتطلبات والوظائف' : 'Manage Requirements & Jobs'}
-                    </Button>
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/dashboard/events/${event.id}/requirements`} className="flex-1">
+                      <Button variant="default" size="sm" className="w-full">
+                        {isArabic ? 'المتطلبات' : 'Requirements'}
+                      </Button>
+                    </Link>
+                    <Link href={`/dashboard/events/${event.id}/jobs`} className="flex-1">
+                      <Button variant="default" size="sm" className="w-full">
+                        {isArabic ? 'الوظائف' : 'Jobs'}
+                      </Button>
+                    </Link>
+                  </div>
                   <div className="flex items-center gap-2">
                     <Link href={`/dashboard/events/${event.id}/subscribers`} className="flex-1">
                       <Button variant="secondary" size="sm" className="w-full">

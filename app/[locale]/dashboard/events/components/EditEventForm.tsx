@@ -14,14 +14,16 @@ interface EditEventFormProps {
   event: {
     id: string;
     title?: string;
+    titleAr?: string | null;
     description?: string;
+    descriptionAr?: string | null;
     date: string | Date;
     imageUrl?: string | null;
     locationId?: string | null;
     acceptJobs?: boolean | null;
     published?: boolean | null;
   };
-  locations: Array<{ id: string; city: string }>;
+  locations: Array<{ id: string; city: string; address?: string | null }>;
   locale: string;
 }
 
@@ -31,7 +33,9 @@ export function EditEventForm({ event, locations, locale }: EditEventFormProps) 
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: event.title || '',
+    titleAr: event.titleAr || '',
     description: event.description || '',
+    descriptionAr: event.descriptionAr || '',
     date: new Date(event.date).toISOString().split('T')[0],
     imageUrl: event.imageUrl || '',
     locationId: event.locationId || '',
@@ -58,31 +62,32 @@ export function EditEventForm({ event, locations, locale }: EditEventFormProps) 
           <CardTitle>{isArabic ? 'تعديل الفعالية' : 'Edit Event'}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="title">{isArabic ? 'العنوان' : 'Title'}</Label>
+          <div className="space-y-2">
+            <Label htmlFor="titleAr">
+              {isArabic ? 'العنوان بالعربية' : 'Title (Arabic)'}
+            </Label>
+            <Input
+              id="titleAr"
+              value={form.titleAr}
+              onChange={(e) => setForm({ ...form, titleAr: e.target.value })}
+              placeholder={isArabic ? 'أدخل العنوان بالعربية' : 'Enter Arabic title'}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="title">Title (English)</Label>
             <Input
               id="title"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Enter English title"
               required
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="description">{isArabic ? 'الوصف' : 'Description'}</Label>
-            <Textarea
-              id="description"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={5}
-              required
-              className="mt-1"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="date">{isArabic ? 'التاريخ' : 'Date'}</Label>
               <Input
                 id="date"
@@ -90,29 +95,59 @@ export function EditEventForm({ event, locations, locale }: EditEventFormProps) 
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
                 required
-                className="mt-1"
               />
             </div>
-            <div>
-              <Label htmlFor="location">{isArabic ? 'الموقع' : 'Location'}</Label>
+            <div className="space-y-2">
+              <Label htmlFor="locationId">
+                {isArabic ? 'الموقع' : 'Location'}
+              </Label>
               <select
-                id="location"
+                id="locationId"
                 value={form.locationId}
                 onChange={(e) => setForm({ ...form, locationId: e.target.value })}
-                className="mt-1 block w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                className="w-full border rounded-md h-10 px-3 text-sm"
               >
-                <option value="">{isArabic ? 'اختر موقعاً' : 'Select location'}</option>
+                <option value="">
+                  {isArabic ? 'اختر الموقع' : 'Select location'}
+                </option>
                 {locations.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.city}
+                    {l.address ? ` - ${l.address}` : ''}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div>
-            <Label>{isArabic ? 'الصورة' : 'Image'}</Label>
+          <div className="space-y-2">
+            <Label htmlFor="descriptionAr">
+              {isArabic ? 'الوصف بالعربية' : 'Description (Arabic)'}
+            </Label>
+            <Textarea
+              id="descriptionAr"
+              value={form.descriptionAr}
+              onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
+              placeholder={isArabic ? 'أدخل الوصف بالعربية' : 'Enter Arabic description'}
+              rows={5}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description (English)</Label>
+            <Textarea
+              id="description"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Enter English description"
+              rows={5}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="imageUrl">{isArabic ? 'الصورة' : 'Image'}</Label>
             <AddImage
               value={form.imageUrl}
               onChange={(url) => setForm({ ...form, imageUrl: url })}

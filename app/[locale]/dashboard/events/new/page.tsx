@@ -11,7 +11,7 @@ export default async function NewEventPage({
   return (
     <section>
       <h1 className="text-2xl font-bold mb-6">{locale === 'ar' ? 'إنشاء فعالية' : 'Create Event'}</h1>
-      <EventForm locations={locations} />
+      <EventForm locations={locations} locale={locale} />
     </section>
   );
 }

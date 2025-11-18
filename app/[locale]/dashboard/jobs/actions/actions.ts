@@ -15,7 +15,7 @@ export async function getJob(id: string) {
   return getJobAction(id);
 }
 
-export async function createJob(data: { name: string; description?: string }) {
+export async function createJob(data: { name: string; nameAr: string; description?: string }) {
   return createJobAction(data);
 }
 

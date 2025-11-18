@@ -8,12 +8,9 @@ interface EditJobContentProps {
 
 export async function EditJobContent({ jobId, locale }: EditJobContentProps) {
   const job = await getJob(jobId);
-  if (!job) return <p className="text-muted-foreground">Not found</p>;
-  return (
-    <>
-      <h1 className="text-2xl font-bold mb-4">{locale === 'ar' ? 'تعديل وظيفة' : 'Edit Job'}</h1>
-      <JobForm id={job.id} name={job.name} description={job.description || ''} />
-    </>
-  );
+  if (!job) return <p className="text-muted-foreground">{locale === 'ar' ? 'غير موجود' : 'Not found'}</p>;
+  // Type assertion needed until Prisma client is regenerated after schema change
+  const jobWithNameAr = job as typeof job & { nameAr?: string | null };
+  return <JobForm id={job.id} name={job.name} nameAr={jobWithNameAr.nameAr} description={job.description || ''} />;
 }
 

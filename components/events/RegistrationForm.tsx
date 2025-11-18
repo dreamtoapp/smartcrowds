@@ -37,7 +37,7 @@ interface RegistrationFormProps {
   requirements: string[];
   jobs: Array<{
     id: string;
-    job: { name: string } | null;
+    job: { name: string; nameAr?: string | null } | null;
     ratePerDay: number | null;
   }>;
   nationalities: Array<{
@@ -476,14 +476,19 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
                       <SelectValue placeholder={tPlaceholders('selectJob')} />
                     </SelectTrigger>
                     <SelectContent>
-                      {jobs.map((jobRequirement) => (
-                        <SelectItem key={jobRequirement.id} value={jobRequirement.id}>
-                          {jobRequirement.job?.name || 'Unknown Job'}
-                          {jobRequirement.ratePerDay != null && (
-                            <> — {jobRequirement.ratePerDay} {isArabic ? 'ريال/يوم' : 'SAR/day'}</>
-                          )}
-                        </SelectItem>
-                      ))}
+                      {jobs.map((jobRequirement) => {
+                        const jobDisplayName = isArabic && jobRequirement.job?.nameAr 
+                          ? jobRequirement.job.nameAr 
+                          : jobRequirement.job?.name || 'Unknown Job';
+                        return (
+                          <SelectItem key={jobRequirement.id} value={jobRequirement.id}>
+                            {jobDisplayName}
+                            {jobRequirement.ratePerDay != null && (
+                              <> — {jobRequirement.ratePerDay} {isArabic ? 'ريال/يوم' : 'SAR/day'}</>
+                            )}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   {errors.jobRequirementId && (

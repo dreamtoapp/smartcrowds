@@ -92,6 +92,7 @@ model ProjectImage {
 model Job {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
+  nameAr      String?
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -125,7 +126,9 @@ model Nationality {
 model Event {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
+  titleAr     String?
   description String
+  descriptionAr String?
   date        DateTime
   imageUrl    String?
   requirements String[]

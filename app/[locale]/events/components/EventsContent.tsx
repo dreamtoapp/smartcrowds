@@ -15,11 +15,12 @@ export async function EventsContent({ locale }: EventsContentProps) {
   type PublicEvent = {
     id: string;
     title: string;
+    titleAr?: string | null;
     date: string | Date;
     imageUrl?: string | null;
     acceptJobs?: boolean | null;
     location?: { city?: string | null } | null;
-    jobs: Array<{ id: string; ratePerDay?: number | null; job?: { name?: string | null } | null }>;
+    jobs: Array<{ id: string; ratePerDay?: number | null; job?: { name?: string | null; nameAr?: string | null } | null }>;
     subscribers?: unknown[] | null;
   };
   const events = (await listEvents()) as unknown as PublicEvent[];
@@ -39,8 +40,13 @@ export async function EventsContent({ locale }: EventsContentProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {events.map((event: PublicEvent) => {
-            const jobsCount = event.jobs?.length || 0;
+            // Filter out jobs with zero or null rate
+            const filteredJobs = event.jobs?.filter(
+              (job) => job.ratePerDay != null && job.ratePerDay > 0
+            ) || [];
+            const jobsCount = filteredJobs.length;
             const subscribersCount = event.subscribers?.length || 0;
+            const displayTitle = isArabic && event.titleAr ? event.titleAr : event.title;
             
             return (
               <Card key={event.id} className="group overflow-hidden h-full flex flex-col bg-card border-2 hover:border-primary/50 transition-colors duration-200">
@@ -49,7 +55,7 @@ export async function EventsContent({ locale }: EventsContentProps) {
                     <>
                       <Image 
                         src={event.imageUrl} 
-                        alt={event.title} 
+                        alt={displayTitle} 
                         fill 
                         className="object-cover" 
                       />
@@ -74,7 +80,7 @@ export async function EventsContent({ locale }: EventsContentProps) {
                 <CardContent className="p-6 flex-1 flex flex-col gap-4">
                   <div>
                     <h3 className="text-xl font-bold leading-tight mb-2 line-clamp-2">
-                      {event.title}
+                      {displayTitle}
                     </h3>
                   </div>
 
@@ -94,7 +100,7 @@ export async function EventsContent({ locale }: EventsContentProps) {
                     {/* Removed subscribers count from public listing per request */}
                   </div>
 
-                  {event.jobs && event.jobs.length > 0 && (
+                  {filteredJobs.length > 0 && (
                     <div className="mt-auto pt-4 border-t border-border/50">
                       <div className="flex items-center gap-2 mb-3">
                         <Briefcase className="h-4 w-4 text-primary/70" />
@@ -103,14 +109,18 @@ export async function EventsContent({ locale }: EventsContentProps) {
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {event.jobs.slice(0, 3).map((jobRequirement) => (
+                        {filteredJobs.slice(0, 3).map((jobRequirement) => {
+                          const jobDisplayName = isArabic && jobRequirement.job?.nameAr 
+                            ? jobRequirement.job.nameAr 
+                            : jobRequirement.job?.name || 'Unknown Job';
+                          return (
                           <div 
                             key={jobRequirement.id} 
                             className="flex items-center gap-2 bg-muted/80 hover:bg-muted border border-border/50 rounded-md px-3 py-2 transition-all hover:shadow-sm"
                           >
                             <div className="flex items-center gap-2 flex-1 min-w-0">
                               <span className="text-xs font-semibold text-foreground truncate max-w-[100px]">
-                                {jobRequirement.job?.name || 'Unknown Job'}
+                                {jobDisplayName}
                               </span>
                               {jobRequirement.ratePerDay != null && (
                                 <span className="flex items-center gap-1 text-xs font-bold text-primary whitespace-nowrap">
@@ -125,10 +135,11 @@ export async function EventsContent({ locale }: EventsContentProps) {
                               )}
                             </div>
                           </div>
-                        ))}
-                        {event.jobs.length > 3 && (
+                          );
+                        })}
+                        {filteredJobs.length > 3 && (
                           <div className="flex items-center justify-center bg-muted/40 border border-dashed border-border/50 rounded-md px-3 py-2 text-xs text-muted-foreground font-medium">
-                            +{event.jobs.length - 3} {isArabic ? 'المزيد' : 'more'}
+                            +{filteredJobs.length - 3} {isArabic ? 'المزيد' : 'more'}
                           </div>
                         )}
                       </div>

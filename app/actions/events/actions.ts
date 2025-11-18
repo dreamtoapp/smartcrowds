@@ -61,12 +61,14 @@ export async function createEvent(input: unknown) {
   const created = await prisma.event.create({
     data: {
       title: data.title,
+      titleAr: data.titleAr || undefined,
       description: data.description,
+      descriptionAr: data.descriptionAr || undefined,
       date: new Date(data.date),
       imageUrl: data.imageUrl || undefined,
       requirements: [],
       locationId: data.locationId,
-    },
+    } as unknown as Prisma.EventUncheckedCreateInput,
   });
   revalidatePath('/ar/dashboard/events');
   revalidatePath('/en/dashboard/events');
@@ -101,25 +103,40 @@ export async function getEventById(id: string) {
 export async function getEventWithJobs(id: string) {
   const event = await prisma.event.findUnique({
     where: { id },
-    include: { 
-      location: true, 
-      jobs: { 
+    include: {
+      location: true,
+      jobs: {
         include: { job: true },
         orderBy: { id: 'asc' }
-      } 
+      }
     },
   });
   return event;
 }
 
-export async function updateEventRequirements(eventId: string, requirements: string[]) {
+export async function updateEventRequirements(
+  eventId: string,
+  requirements: Array<{ name: string; nameAr: string }> | string[]
+) {
   try {
+    // Convert objects to JSON strings for Prisma String[] field
+    // Handle backward compatibility: if string[], keep as is; if objects, stringify
+    const normalizedRequirements = requirements.map((req) => {
+      if (typeof req === 'string') {
+        return req;
+      }
+      // Serialize object to JSON string
+      return JSON.stringify(req);
+    });
+
     await prisma.event.update({
       where: { id: eventId },
-      data: { requirements },
+      data: { requirements: normalizedRequirements },
     });
     revalidatePath('/ar/dashboard/events');
     revalidatePath('/en/dashboard/events');
+    revalidatePath(`/ar/dashboard/events/${eventId}/requirements`);
+    revalidatePath(`/en/dashboard/events/${eventId}/requirements`);
     revalidatePath(`/ar/dashboard/events/${eventId}/jobs`);
     revalidatePath(`/en/dashboard/events/${eventId}/jobs`);
     return { success: true };
@@ -143,7 +160,7 @@ export async function addEventJob(eventId: string, jobId: string, ratePerDay: nu
         ratePerDay: validated.ratePerDay,
       },
     });
-    
+
     revalidatePath('/ar/dashboard/events');
     revalidatePath('/en/dashboard/events');
     revalidatePath(`/ar/dashboard/events/${eventId}/jobs`);
@@ -168,7 +185,7 @@ export async function updateEventJob(requirementId: string, ratePerDay: number) 
       where: { id: requirementId },
       data: { ratePerDay },
     });
-    
+
     const requirement = await prisma.eventJobRequirement.findUnique({
       where: { id: requirementId },
       include: { event: true },
@@ -180,7 +197,7 @@ export async function updateEventJob(requirementId: string, ratePerDay: number) 
       revalidatePath(`/ar/dashboard/events/${requirement.eventId}/jobs`);
       revalidatePath(`/en/dashboard/events/${requirement.eventId}/jobs`);
     }
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error updating event job:', error);
@@ -205,12 +222,12 @@ export async function removeEventJob(requirementId: string) {
     await prisma.eventJobRequirement.delete({
       where: { id: requirementId },
     });
-    
+
     revalidatePath('/ar/dashboard/events');
     revalidatePath('/en/dashboard/events');
     revalidatePath(`/ar/dashboard/events/${requirement.eventId}/jobs`);
     revalidatePath(`/en/dashboard/events/${requirement.eventId}/jobs`);
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error removing event job:', error);
@@ -224,7 +241,7 @@ export async function removeEventJob(requirementId: string) {
 export async function updateEventRequirementsAndJobs(eventId: string, data: unknown) {
   try {
     const validated = eventRequirementsJobsSchema.parse(data);
-    
+
     // Update requirements
     await prisma.event.update({
       where: { id: eventId },
@@ -239,10 +256,10 @@ export async function updateEventRequirementsAndJobs(eventId: string, data: unkn
     // Remove jobs that are no longer in the list
     const existingJobIds = new Set(existingJobs.map((j: { jobId: string }) => j.jobId));
     const newJobIds = new Set((validated.jobs as Array<{ jobId: string; ratePerDay: number }>).map((j) => j.jobId));
-    
+
     const jobsToRemove = existingJobs.filter((j: { jobId: string }) => !newJobIds.has(j.jobId));
     await Promise.all(
-      jobsToRemove.map(job => 
+      jobsToRemove.map(job =>
         prisma.eventJobRequirement.delete({ where: { id: job.id } })
       )
     );
@@ -269,12 +286,12 @@ export async function updateEventRequirementsAndJobs(eventId: string, data: unkn
         }
       })
     );
-    
+
     revalidatePath('/ar/dashboard/events');
     revalidatePath('/en/dashboard/events');
     revalidatePath(`/ar/dashboard/events/${eventId}/jobs`);
     revalidatePath(`/en/dashboard/events/${eventId}/jobs`);
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error updating event requirements and jobs:', error);
@@ -295,7 +312,7 @@ export async function verifyIdNumber(eventId: string, idNumber: string) {
         error: 'رقم الهوية غير صحيح',
       };
     }
-    
+
     // Check for duplicate ID in database
     const existingSubscriber = await prisma.eventSubscriber.findFirst({
       where: {
@@ -303,7 +320,7 @@ export async function verifyIdNumber(eventId: string, idNumber: string) {
         idNumber,
       },
     });
-    
+
     if (existingSubscriber) {
       return {
         valid: true,
@@ -311,7 +328,7 @@ export async function verifyIdNumber(eventId: string, idNumber: string) {
         error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية',
       };
     }
-    
+
     return {
       valid: true,
       isDuplicate: false,
@@ -329,7 +346,7 @@ export async function verifyIdNumber(eventId: string, idNumber: string) {
 export async function registerForEvent(input: unknown) {
   try {
     const data = registrationInputSchema.parse(input);
-    
+
     // Check if this ID number is already registered for this event
     const existingSubscriber = await prisma.eventSubscriber.findFirst({
       where: {
@@ -337,13 +354,13 @@ export async function registerForEvent(input: unknown) {
         idNumber: data.idNumber,
       },
     });
-    
+
     if (existingSubscriber) {
-      return { 
-        error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية' 
+      return {
+        error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية'
       };
     }
-    
+
     // Compute age from date of birth
     const dob = new Date(data.dateOfBirth);
     const idExpiry = new Date(data.idExpiryDate);
@@ -373,7 +390,7 @@ export async function registerForEvent(input: unknown) {
         city: data.city || undefined,
       },
     });
-    
+
     revalidatePath('/ar/events');
     revalidatePath('/en/events');
     revalidatePath(`/ar/events/${data.eventId}`);
@@ -384,18 +401,18 @@ export async function registerForEvent(input: unknown) {
     revalidatePath(`/en/dashboard/events/${data.eventId}/subscribers`);
     revalidatePath('/ar/dashboard/subscribers');
     revalidatePath('/en/dashboard/subscribers');
-    
+
     return { success: true, subscriber };
   } catch (error) {
     console.error('Error registering for event:', error);
-    
+
     // Handle Prisma unique constraint violation
     if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-      return { 
-        error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية' 
+      return {
+        error: 'رقم الهوية هذا مسجل مسبقاً في هذه الفعالية. لا يمكن التسجيل مرتين بنفس رقم الهوية'
       };
     }
-    
+
     if (error instanceof Error) {
       return { error: error.message };
     }
@@ -448,7 +465,7 @@ export async function bulkUpdateSubscribersAccepted(ids: string[], accepted: boo
     const subs = (await prisma.eventSubscriber.findMany({
       where: { id: { in: ids } },
       select: { eventId: true },
-    })) as Array<{ eventId: string }>; 
+    })) as Array<{ eventId: string }>;
     if (subs.length === 0) return { success: true };
     await prisma.eventSubscriber.updateMany({ where: { id: { in: ids } }, data: { accepted } });
     const eventIds = Array.from(new Set(subs.map((s: { eventId: string }) => s.eventId)));
@@ -793,7 +810,9 @@ export async function updateEventCompleted(eventId: string, completed: boolean) 
 // Update event core fields
 const updateEventSchema = z.object({
   title: z.string().min(1).optional(),
+  titleAr: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
+  descriptionAr: z.string().min(1).optional(),
   date: z.string().optional(),
   imageUrl: z.string().url().optional().or(z.literal('')).optional(),
   locationId: z.string().optional(),
@@ -806,7 +825,9 @@ export async function updateEvent(eventId: string, input: unknown) {
     const data = updateEventSchema.parse(input);
     const updateData: Record<string, unknown> = {};
     if (data.title !== undefined) updateData.title = data.title;
+    if (data.titleAr !== undefined) updateData.titleAr = data.titleAr || null;
     if (data.description !== undefined) updateData.description = data.description;
+    if (data.descriptionAr !== undefined) updateData.descriptionAr = data.descriptionAr || null;
     if (data.date !== undefined) updateData.date = new Date(data.date);
     if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl || null;
     if (data.locationId !== undefined) updateData.locationId = data.locationId;
