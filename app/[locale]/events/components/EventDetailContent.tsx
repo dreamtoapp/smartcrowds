@@ -68,9 +68,9 @@ export async function EventDetailContent({ locale, id }: EventDetailContentProps
 
   const parsedRequirements = parseRequirements(event.requirements);
 
-  // Filter out jobs with zero or null rate
+  // Filter out jobs with null rate only (keep zero rates)
   const filteredJobs = (event.jobs || []).filter(
-    (job) => job.ratePerDay != null && job.ratePerDay > 0
+    (job) => job.ratePerDay != null
   );
 
   return (
@@ -133,8 +133,8 @@ export async function EventDetailContent({ locale, id }: EventDetailContentProps
                   );
                 })}
               </ul>
-              <RegistrationForm 
-                eventId={event.id} 
+              <RegistrationForm
+                eventId={event.id}
                 requirements={event.requirements as string[]}
                 jobs={filteredJobs}
                 nationalities={nationalities}
@@ -148,8 +148,8 @@ export async function EventDetailContent({ locale, id }: EventDetailContentProps
               <CardTitle>{locale === 'ar' ? 'التسجيل' : 'Register'}</CardTitle>
             </CardHeader>
             <CardContent>
-              <RegistrationForm 
-                eventId={event.id} 
+              <RegistrationForm
+                eventId={event.id}
                 requirements={[]}
                 jobs={filteredJobs}
                 nationalities={nationalities}

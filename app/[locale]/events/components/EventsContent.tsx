@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import Link from 'next/link';
 import { listEvents } from '../actions/actions';
@@ -40,24 +41,24 @@ export async function EventsContent({ locale }: EventsContentProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {events.map((event: PublicEvent) => {
-            // Filter out jobs with zero or null rate
+            // Filter out jobs with null rate only (keep zero rates)
             const filteredJobs = event.jobs?.filter(
-              (job) => job.ratePerDay != null && job.ratePerDay > 0
+              (job) => job.ratePerDay != null
             ) || [];
             const jobsCount = filteredJobs.length;
             const subscribersCount = event.subscribers?.length || 0;
             const displayTitle = isArabic && event.titleAr ? event.titleAr : event.title;
-            
+
             return (
               <Card key={event.id} className="group overflow-hidden h-full flex flex-col bg-card border-2 hover:border-primary/50 transition-colors duration-200">
                 <div className="relative h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
                   {event.imageUrl ? (
                     <>
-                      <Image 
-                        src={event.imageUrl} 
-                        alt={displayTitle} 
-                        fill 
-                        className="object-cover" 
+                      <Image
+                        src={event.imageUrl}
+                        alt={displayTitle}
+                        fill
+                        className="object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0" />
                     </>
@@ -66,7 +67,7 @@ export async function EventsContent({ locale }: EventsContentProps) {
                       <Calendar className="h-16 w-16 text-primary/30" />
                     </div>
                   )}
-                  
+
                   {jobsCount > 0 && (
                     <div className="absolute top-3 right-3">
                       <Badge className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg backdrop-blur-sm">
@@ -89,7 +90,7 @@ export async function EventsContent({ locale }: EventsContentProps) {
                       <Calendar className="h-4 w-4 text-primary/70 flex-shrink-0" />
                       <span className="font-medium">{format(new Date(event.date), 'PPP')}</span>
                     </div>
-                    
+
                     {event.location && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="h-4 w-4 text-primary/70 flex-shrink-0" />
@@ -108,41 +109,39 @@ export async function EventsContent({ locale }: EventsContentProps) {
                           {isArabic ? 'الوظائف المطلوبة' : 'Required Jobs'}
                         </span>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {filteredJobs.slice(0, 3).map((jobRequirement) => {
-                          const jobDisplayName = isArabic && jobRequirement.job?.nameAr 
-                            ? jobRequirement.job.nameAr 
-                            : jobRequirement.job?.name || 'Unknown Job';
-                          return (
-                          <div 
-                            key={jobRequirement.id} 
-                            className="flex items-center gap-2 bg-muted/80 hover:bg-muted border border-border/50 rounded-md px-3 py-2 transition-all hover:shadow-sm"
-                          >
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <span className="text-xs font-semibold text-foreground truncate max-w-[100px]">
-                                {jobDisplayName}
-                              </span>
-                              {jobRequirement.ratePerDay != null && (
-                                <span className="flex items-center gap-1 text-xs font-bold text-primary whitespace-nowrap">
-                                  <span className="text-[10px] text-muted-foreground font-normal">
-                                    {isArabic ? 'ريال' : 'SAR'}
+                      <ScrollArea className="w-full">
+                        <div className="flex gap-2 pb-2">
+                          {filteredJobs.map((jobRequirement) => {
+                            const jobDisplayName = isArabic && jobRequirement.job?.nameAr
+                              ? jobRequirement.job.nameAr
+                              : jobRequirement.job?.name || 'Unknown Job';
+                            return (
+                              <div
+                                key={jobRequirement.id}
+                                className="flex items-center gap-2 bg-muted/80 hover:bg-muted border border-border/50 rounded-md px-3 py-2 transition-all hover:shadow-sm flex-shrink-0"
+                              >
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-xs font-semibold text-foreground truncate max-w-[100px]">
+                                    {jobDisplayName}
                                   </span>
-                                  {jobRequirement.ratePerDay}
-                                  <span className="text-[10px] text-muted-foreground font-normal">
-                                    {isArabic ? '/يوم' : '/day'}
-                                  </span>
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          );
-                        })}
-                        {filteredJobs.length > 3 && (
-                          <div className="flex items-center justify-center bg-muted/40 border border-dashed border-border/50 rounded-md px-3 py-2 text-xs text-muted-foreground font-medium">
-                            +{filteredJobs.length - 3} {isArabic ? 'المزيد' : 'more'}
-                          </div>
-                        )}
-                      </div>
+                                  {jobRequirement.ratePerDay != null && jobRequirement.ratePerDay > 0 && (
+                                    <span className="flex items-center gap-1 text-xs font-bold text-primary whitespace-nowrap">
+                                      <span className="text-[10px] text-muted-foreground font-normal">
+                                        {isArabic ? 'ريال' : 'SAR'}
+                                      </span>
+                                      {jobRequirement.ratePerDay}
+                                      <span className="text-[10px] text-muted-foreground font-normal">
+                                        {isArabic ? '/يوم' : '/day'}
+                                      </span>
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
                     </div>
                   )}
 

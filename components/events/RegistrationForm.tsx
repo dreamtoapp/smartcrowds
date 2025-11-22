@@ -477,13 +477,13 @@ export default function RegistrationForm({ eventId, requirements, jobs, national
                     </SelectTrigger>
                     <SelectContent>
                       {jobs.map((jobRequirement) => {
-                        const jobDisplayName = isArabic && jobRequirement.job?.nameAr 
-                          ? jobRequirement.job.nameAr 
+                        const jobDisplayName = isArabic && jobRequirement.job?.nameAr
+                          ? jobRequirement.job.nameAr
                           : jobRequirement.job?.name || 'Unknown Job';
                         return (
                           <SelectItem key={jobRequirement.id} value={jobRequirement.id}>
                             {jobDisplayName}
-                            {jobRequirement.ratePerDay != null && (
+                            {jobRequirement.ratePerDay != null && jobRequirement.ratePerDay > 0 && (
                               <> — {jobRequirement.ratePerDay} {isArabic ? 'ريال/يوم' : 'SAR/day'}</>
                             )}
                           </SelectItem>
